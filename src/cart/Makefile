@@ -80,6 +80,12 @@ deploy:
 		cart-$(instance) \
 		$(helm_dest)
 
+destroy:
+	@helm uninstall \
+		--namespace $(env) \
+		--timeout 10m \
+		shopping-cart-devops-demo-cart-$(instance)
+
 test-remote:
 	@$(docker) pull $(server)/cart:$(version_small)
 
