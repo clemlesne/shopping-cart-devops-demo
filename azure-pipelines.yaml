@@ -29,6 +29,6 @@ stages:
 
       - template: cicd/pipelines/deploy.yaml
         parameters:
-          depends: deploy_preprod_${{ variables.branch_sanitized }}
+          depends: deploy_preprod_${{ replace(variables.branch_sanitized, '-', '_') }}
           env : prod
           instance: ${{ variables.branch_sanitized }}
