@@ -1,0 +1,75 @@
+parameters:
+  depends: ''
+  env: ''
+  instance: ''
+  azure_token: ''
+
+stages:
+  - stage: deploy_${{ parameters.env }}_${{ parameters.instance }}
+    displayName: Deployment in ${{ parameters.env }} for ${{ parameters.instance }}
+    condition: succeeded()
+    dependsOn: ${{ parameters.depends }}
+    lockBehavior: sequential
+    jobs:
+      - job: cart
+        displayName: Cart service
+        steps:
+          - checkout: self
+            displayName: Checkout sources
+            fetchDepth: 0
+            fetchTags: true
+
+          - task: HelmInstaller@1
+            displayName: Setup Helm
+            inputs:
+              helmVersionToInstall: 3.10.3
+
+          - script: |
+              # Install
+              cd "$(Agent.TempDirectory)"
+              curl -Lo kubelogin.zip https://github.com/Azure/kubelogin/releases/download/v0.0.25/kubelogin-linux-amd64.zip
+              unzip kubelogin.zip -d ./kubelogin
+              sudo mkdir -p /usr/local/kubelogin/bin
+              sudo mv ./kubelogin/bin/linux_amd64/kubelogin /usr/local/kubelogin/bin/kubelogin
+              sudo ln -s /usr/local/kubelogin/bin/kubelogin /usr/local/bin
+
+              # Test the install
+              kubelogin --version
+            displayName: Setup Kubelogin
+
+          - task: AzureCLI@2
+            displayName: Deploy build
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Connect to Azure Kubernetes Service
+                az aks get-credentials --resource-group shopping-cart-devops-demo --name shoppingcartdevopsdemo
+                kubelogin convert-kubeconfig -l azurecli
+
+                # Exec our build
+                make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+      - job: items
+        displayName: Items service
+        steps:
+          - checkout: self
+            displayName: Checkout sources
+            fetchDepth: 0
+            fetchTags: true
+
+          - task: AzureCLI@2
+            displayName: Deploy build
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Exec our build
+                make --directory ./src/items env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
