@@ -1,0 +1,45 @@
+replicaCount: 2
+
+image:
+  repository: shoppingcartdevopsdemo.azurecr.io/cart
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+securityContext:
+  readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  host: shopping-cart-devops-demo.westeurope.cloudapp.azure.com
+  pathPrefix: /cart
+  tls: {}
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 200Mi
+  requests:
+    cpu: 200m
+    memory: 200Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+secrets:
+  keyvaultName: shoppingcartdevopsdemo
+  tenantId: 0dbe2ab8-25ae-40a9-be67-b9afd61f7068
+  podIdentityName: shopping-cart-devops-demo

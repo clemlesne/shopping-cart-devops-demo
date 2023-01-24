@@ -1,0 +1,13 @@
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "this.fullname" . }}
+spec:
+  selector: {{ include "this.selectorCalico" . }}
+  types:
+    - Egress
+    - Ingress
+  ingress:
+    - action: Allow
+  egress:
+    - action: Allow

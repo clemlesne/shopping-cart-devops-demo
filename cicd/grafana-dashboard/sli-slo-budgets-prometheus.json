@@ -1,0 +1,661 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 24,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 12,
+      "panels": [],
+      "title": "Budget & burn rate",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "chaos-studio-demo"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#EAB839",
+                "value": 0
+              },
+              {
+                "color": "green",
+                "value": 0.5
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "1 - (sum_over_time(($query_error / $query_total)[30d:$__interval]) / count_over_time(($query_error / $query_total)[30d:$__interval])) / vector(1 - $objective / 100)",
+          "legendFormat": "Remaining budget",
+          "range": true,
+          "refId": "Remaining budget"
+        }
+      ],
+      "title": "Remaining budget (30d)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "chaos-studio-demo"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "(sum_over_time(($query_error / $query_total)[5m:$__interval]) / count_over_time(($query_error / $query_total)[5m:$__interval])) / vector(1 - $objective / 100)",
+          "legendFormat": "Burn rate",
+          "range": true,
+          "refId": "Burn rate"
+        }
+      ],
+      "title": "Current burn rate (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "chaos-studio-demo"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "(sum_over_time(($query_error / $query_total)[30d:$__interval]) / count_over_time(($query_error / $query_total)[30d:$__interval])) / vector(1 - $objective / 100)",
+          "legendFormat": "Burn rate",
+          "range": true,
+          "refId": "Burn rate"
+        }
+      ],
+      "title": "Period burn rate (30d)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 14,
+      "panels": [],
+      "title": "Events & rates",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "chaos-studio-demo"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[5m:$__interval]) / count_over_time(($query_error / $query_total)[5m:$__interval])",
+          "legendFormat": "Ratio rate /5m",
+          "range": true,
+          "refId": "Ratio rate /5m"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[30m:$__interval]) / count_over_time(($query_error / $query_total)[30m:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /30m",
+          "range": true,
+          "refId": "Ratio rate /30m"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[1h:$__interval]) / count_over_time(($query_error / $query_total)[1h:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /1h",
+          "range": true,
+          "refId": "Ratio rate /1h"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[2h:$__interval]) / count_over_time(($query_error / $query_total)[2h:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /2h",
+          "range": true,
+          "refId": "Ratio rate /2h"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[6h:$__interval]) / count_over_time(($query_error / $query_total)[6h:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /6h",
+          "range": true,
+          "refId": "Ratio rate /6h"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[1d:$__interval]) / count_over_time(($query_error / $query_total)[1d:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /1d",
+          "range": true,
+          "refId": "Ratio rate /1d"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[3d:$__interval]) / count_over_time(($query_error / $query_total)[3d:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /3d",
+          "range": true,
+          "refId": "Ratio rate /3d"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "sum_over_time(($query_error / $query_total)[30d:$__interval]) / count_over_time(($query_error / $query_total)[30d:$__interval])",
+          "hide": false,
+          "legendFormat": "Ratio rate /30d",
+          "range": true,
+          "refId": "Ratio rate /30d"
+        }
+      ],
+      "title": "Ratio rates",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "chaos-studio-demo"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "$query_total",
+          "interval": "",
+          "legendFormat": "Total",
+          "range": true,
+          "refId": "Total"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "chaos-studio-demo"
+          },
+          "editorMode": "code",
+          "expr": "$query_error",
+          "hide": false,
+          "legendFormat": "In error",
+          "range": true,
+          "refId": "In error"
+        }
+      ],
+      "title": "Events",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 37,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "99.9",
+          "value": "99.9"
+        },
+        "description": "Numeric value, represents the amount of time the objective need to be maintained",
+        "hide": 0,
+        "label": "Objective",
+        "name": "objective",
+        "options": [
+          {
+            "selected": true,
+            "text": "99.9",
+            "value": "99.9"
+          }
+        ],
+        "query": "99.9",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "hide": 2,
+        "name": "query_total",
+        "query": "clamp_min(sum(kube_pod_status_phase{pod=~\"dummy-http-*\"}) or vector(1), 1)",
+        "skipUrlSync": false,
+        "type": "constant"
+      },
+      {
+        "hide": 2,
+        "name": "query_error",
+        "query": "clamp_min(sum(kube_pod_status_phase{pod=~\"dummy-http-*\"}) or vector(1), 1) - sum(kube_deployment_status_replicas_available{deployment=\"dummy-http\"}) or vector(0)",
+        "skipUrlSync": false,
+        "type": "constant"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "SLI, SLO & budgets (Prometheus)",
+  "uid": "oLzzUmt4k",
+  "version": 2,
+  "weekStart": ""
+}
