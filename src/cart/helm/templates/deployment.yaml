@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "this.fullname" . }}
+  labels:
+    {{- include "this.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "this.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "this.selectorLabels" . | nindent 8 }}
+        aadpodidbinding: {{ .Values.secrets.podIdentityName }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            periodSeconds: 5
+            timeoutSeconds: 5
+            initialDelaySeconds: 10
+            httpGet:
+              path: /health/liveness
+              port: http
+          readinessProbe:
+            failureThreshold: 3
+            periodSeconds: 15
+            timeoutSeconds: 5
+            initialDelaySeconds: 10
+            httpGet:
+              path: /health/readiness
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          env:
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "this.fullname" . }}
+                  key: applicationinsights-connection-string
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 10Mi
+        - name: secrets-store
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: {{ include "this.fullname" . }}
