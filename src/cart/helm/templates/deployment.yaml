@@ -15,7 +15,6 @@ spec:
     metadata:
       labels:
         {{- include "this.selectorLabels" . | nindent 8 }}
-        aadpodidbinding: {{ .Values.secrets.podIdentityName }}
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
@@ -23,6 +22,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      serviceAccountName: {{ .Values.secrets.serviceAccountName }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:

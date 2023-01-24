@@ -100,13 +100,53 @@ helm install chaos-mesh chaos-mesh/chaos-mesh \
   --version 2.5.0
 ```
 
+Enable [Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster) to the Kubernetes cluster:
+
+```bash
+az feature register --namespace "Microsoft.ContainerService" --name "EnableWorkloadIdentityPreview"
+
+az provider register --namespace Microsoft.ContainerService
+
+az aks update \
+  --name shoppingcartdevopsdemo \
+  --resource-group shopping-cart-devops-demo \
+  --enable-oidc-issuer \
+  --enable-workload-identity
+
+USER_ASSIGNED_IDENTITY_NAME="shopping-cart-devops-demo"
+AKS_OIDC_ISSUER="$(az aks show --name shoppingcartdevopsdemo --resource-group shopping-cart-devops-demo --query "oidcIssuerProfile.issuerUrl" -otsv)"
+USER_ASSIGNED_CLIENT_ID="$(az identity show --resource-group shopping-cart-devops-demo --name "${USER_ASSIGNED_IDENTITY_NAME}" --query 'clientId' -otsv)"
+SERVICE_ACCOUNT_NAME="workload-identity-sa"
+SERVICE_ACCOUNT_NAMESPACE="dev"
+
+# You can repeat this step for all your namespaces (ex: dev, preprod, prod)
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    azure.workload.identity/client-id: "${USER_ASSIGNED_CLIENT_ID}"
+  labels:
+    azure.workload.identity/use: "true"
+  name: "${SERVICE_ACCOUNT_NAME}"
+  namespace: "${SERVICE_ACCOUNT_NAMESPACE}"
+EOF
+
+az identity federated-credential create \
+  --name myfederatedIdentity \
+  --identity-name "${USER_ASSIGNED_IDENTITY_NAME}" \
+  --resource-group "shopping-cart-devops-demo" \
+  --issuer "${AKS_OIDC_ISSUER}" \
+  --subject system:serviceaccount:"${SERVICE_ACCOUNT_NAMESPACE}":"${SERVICE_ACCOUNT_NAME}"
+```
+
 #### Azure Load Testing
 
 ```bash
 # ID of the Service Principal used by Azure DevOps
-serviceprincipal_id="da0107d7-2837-4ca1-a4c9-70f7b6d8aee1"
+SERVICEPRINCIPAL_ID="da0107d7-2837-4ca1-a4c9-70f7b6d8aee1"
 
-az role assignment create --assignee $serviceprincipal_id \
+az role assignment create --assignee $SERVICEPRINCIPAL_ID \
   --role "Load Test Contributor"
 ```
 
