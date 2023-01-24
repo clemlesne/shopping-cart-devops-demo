@@ -27,6 +27,9 @@ deploy:
 		--resource-group shopping-cart-devops-demo \
 		--settings APP_VERSION=$(version_full)
 
+destroy:
+	@echo "Not yet implemented (sorry)"
+
 watch-build:
 	@az webapp log tail \
 		--name shopping-cart-devops-demo-items \

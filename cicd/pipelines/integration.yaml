@@ -1,6 +1,3 @@
-parameters:
-  azure_token: ''
-
 stages:
   - stage: integration
     displayName: Integration
@@ -26,7 +23,7 @@ stages:
             displayName: Publish build
             env:
               # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -45,12 +42,12 @@ stages:
 
           # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
           # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure
-          - bash: |
-              sleep 180
-            displayName: Wait before test remote
+          # - bash: |
+          #     sleep 180
+          #   displayName: Wait before container security test
 
           - task: AzureCLI@2
-            displayName: Test remote
+            displayName: Container security test (SAST)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash

@@ -21,7 +21,6 @@ service:
 ingress:
   enabled: true
   host: shopping-cart-devops-demo.westeurope.cloudapp.azure.com
-  pathPrefix: /cart
   tls: {}
 
 resources:
@@ -42,4 +41,5 @@ autoscaling:
 secrets:
   keyvaultName: shoppingcartdevopsdemo
   tenantId: 0dbe2ab8-25ae-40a9-be67-b9afd61f7068
-  podIdentityName: shopping-cart-devops-demo
+  userAssignedClientId: 933a70e7-4238-448a-96f4-5651c3516f7c
+  serviceAccountName: workload-identity-sa

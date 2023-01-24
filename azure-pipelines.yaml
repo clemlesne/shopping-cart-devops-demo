@@ -7,14 +7,11 @@ trigger:
 pool: Azure Pipelines
 
 variables:
-  azure_token: ${{ variables['System.AccessToken'] }}
   branch_raw: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-  branch_sanitized: ${{ replace(replace(variables.branch_raw, '/', '_'), '-', '_') }}
+  branch_sanitized: ${{ replace(replace(variables.branch_raw, '/', '-'), '_', '-') }}
 
 stages:
   - template: cicd/pipelines/integration.yaml
-    parameters:
-      azure_token: ${{ variables.azure_token }}
 
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:
     - template: cicd/pipelines/deploy.yaml
@@ -22,7 +19,6 @@ stages:
         depends: integration
         env : dev
         instance: ${{ variables.branch_sanitized }}
-        azure_token: ${{ variables.azure_token }}
 
   - ${{ if eq(variables.branch_raw, 'master') }}:
       - template: cicd/pipelines/deploy.yaml
@@ -30,11 +26,9 @@ stages:
           depends: integration
           env : preprod
           instance: ${{ variables.branch_sanitized }}
-          azure_token: ${{ variables.azure_token }}
 
       - template: cicd/pipelines/deploy.yaml
         parameters:
           depends: deploy_preprod_${{ variables.branch_sanitized }}
           env : prod
           instance: ${{ variables.branch_sanitized }}
-          azure_token: ${{ variables.azure_token }}
