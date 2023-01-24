@@ -1,0 +1,68 @@
+parameters:
+  azure_token: ''
+
+stages:
+  - stage: integration
+    displayName: Integration
+    jobs:
+      - job: cart
+        displayName: Cart service
+        steps:
+          - checkout: self
+            displayName: Checkout sources
+            fetchDepth: 0
+            fetchTags: true
+
+          - task: DockerInstaller@0
+            displayName: Setup Docker
+            inputs:
+              dockerVersion: 20.10.9
+
+          - bash: |
+              make --directory ./src/cart build
+            displayName: Build
+
+          - task: AzureCLI@2
+            displayName: Publish build
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Make sure CLI extensions can be used
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                # Connect to Azure Container Registry
+                DOCKER_TOKEN=$(az acr login --expose-token --name shoppingcartdevopsdemo)
+                LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
+                docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
+
+                # Exec our build
+                make --directory ./src/cart server=$LOGIN_SERVER publish
+
+          # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
+          # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure
+          - bash: |
+              sleep 180
+            displayName: Wait before test remote
+
+          - task: AzureCLI@2
+            displayName: Test remote
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Make sure CLI extensions can be used
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                # Connect to Azure Container Registry
+                DOCKER_TOKEN=$(az acr login --expose-token --name shoppingcartdevopsdemo)
+                LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
+                docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
+
+                # Exec out test
+                make --directory ./src/cart server=$LOGIN_SERVER test-remote

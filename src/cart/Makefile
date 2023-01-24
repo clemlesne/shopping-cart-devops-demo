@@ -1,3 +1,5 @@
+env := dev
+instance := none
 docker := docker
 version_small ?= $(shell $(MAKE) --directory ../../ --silent version)
 version_full ?= $(shell $(MAKE) --directory ../../ --silent version-full)
@@ -73,9 +75,9 @@ deploy:
 	@helm upgrade \
 		--atomic \
 		--install \
-		--namespace $(namespace) \
+		--namespace $(env) \
 		--timeout 10m \
-		shopping-cart-devops-demo-cart \
+		shopping-cart-devops-demo-cart-$(instance) \
 		$(helm_dest)
 
 test-remote:
