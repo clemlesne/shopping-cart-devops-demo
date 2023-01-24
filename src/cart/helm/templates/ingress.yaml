@@ -1,0 +1,32 @@
+{{- if .Values.ingress.enabled -}}
+{{- $fullName := include "this.fullname" . -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "this.labels" . | nindent 4 }}
+spec:
+  routes:
+    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.pathPrefix }}`)
+      kind: Rule
+      services:
+        - name: {{ $fullName }}
+          port: {{ $svcPort }}
+      middlewares:
+        - name: {{ $fullName }}
+  tls:
+    {{- toYaml .Values.ingress.tls | nindent 4 }}
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "this.labels" . | nindent 4 }}
+spec:
+  stripPrefix:
+    prefixes:
+      - {{ .Values.ingress.pathPrefix }}
+{{- end }}
