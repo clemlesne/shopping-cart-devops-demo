@@ -42,9 +42,9 @@ stages:
 
           # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
           # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure
-          - bash: |
-              sleep 180
-            displayName: Wait before test remote
+          # - bash: |
+          #     sleep 180
+          #   displayName: Wait before container security test
 
           - task: AzureCLI@2
             displayName: Container security test (SAST)
