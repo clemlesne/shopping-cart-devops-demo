@@ -1,6 +1,3 @@
-parameters:
-  azure_token: ''
-
 stages:
   - stage: integration
     displayName: Integration
@@ -26,7 +23,7 @@ stages:
             displayName: Publish build
             env:
               # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -50,7 +47,7 @@ stages:
             displayName: Wait before test remote
 
           - task: AzureCLI@2
-            displayName: Test remote
+            displayName: Container security test (SAST)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash

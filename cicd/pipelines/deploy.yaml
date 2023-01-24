@@ -2,11 +2,10 @@ parameters:
   depends: ''
   env: ''
   instance: ''
-  azure_token: ''
 
 stages:
-  - stage: deploy_${{ parameters.env }}_${{ parameters.instance }}
-    displayName: Deployment in ${{ parameters.env }} for ${{ parameters.instance }}
+  - stage: deploy_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
+    displayName: Deploy ${{ parameters.env }} for ${{ parameters.instance }}
     condition: succeeded()
     dependsOn: ${{ parameters.depends }}
     lockBehavior: sequential
@@ -38,10 +37,10 @@ stages:
             displayName: Setup Kubelogin
 
           - task: AzureCLI@2
-            displayName: Deploy build
+            displayName: Deploy instance
             env:
               # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -65,7 +64,7 @@ stages:
             displayName: Deploy build
             env:
               # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash

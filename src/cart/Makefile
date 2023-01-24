@@ -77,7 +77,7 @@ deploy:
 		--install \
 		--namespace $(env) \
 		--timeout 10m \
-		shopping-cart-devops-demo-cart-$(instance) \
+		cart-$(instance) \
 		$(helm_dest)
 
 test-remote:

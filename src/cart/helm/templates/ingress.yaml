@@ -9,7 +9,7 @@ metadata:
     {{- include "this.labels" . | nindent 4 }}
 spec:
   routes:
-    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.pathPrefix }}`)
+    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`/{{ include "this.fullname" . }}`)
       kind: Rule
       services:
         - name: {{ $fullName }}
@@ -28,5 +28,5 @@ metadata:
 spec:
   stripPrefix:
     prefixes:
-      - {{ .Values.ingress.pathPrefix }}
+      - "/{{ include "this.fullname" . }}"
 {{- end }}

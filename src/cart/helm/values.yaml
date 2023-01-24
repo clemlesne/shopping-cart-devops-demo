@@ -21,7 +21,6 @@ service:
 ingress:
   enabled: true
   host: shopping-cart-devops-demo.westeurope.cloudapp.azure.com
-  pathPrefix: /cart
   tls: {}
 
 resources:
