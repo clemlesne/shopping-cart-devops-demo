@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: 0.0.0
+description: Cart serivce, part of the Shopping Cart DevOps Demo project
+name: cart
+type: application
+version: 0.0.0
