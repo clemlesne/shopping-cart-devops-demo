@@ -67,4 +67,4 @@ NAMESPACE=dev
 kubectl create ns $NAMESPACE
 ```
 
-Deploy the application, `make namespace=$NAMESPACE deploy`.
+Deploy the application, `make env=$NAMESPACE deploy`.

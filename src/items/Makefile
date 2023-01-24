@@ -1,3 +1,5 @@
+env := dev
+instance := none
 version_small ?= $(shell $(MAKE) --directory ../../ --silent version)
 version_full ?= $(shell $(MAKE) --directory ../../ --silent version-full)
 tmp_path := $(shell mktemp -d)
@@ -16,6 +18,7 @@ dev:
 test-local:
 	@black app
 
+# TODO: Use "env" and "instance" variables to custom the deploy destination
 deploy:
 	@func azure functionapp publish shopping-cart-devops-demo-items --build remote
 
