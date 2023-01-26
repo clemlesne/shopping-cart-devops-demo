@@ -1,0 +1,33 @@
+parameters:
+  depends: ''
+  env: ''
+  instance: ''
+
+stages:
+  - stage: test_integration_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
+    displayName: Test integration ${{ parameters.env }} for ${{ parameters.instance }}
+    condition: succeeded()
+    dependsOn: ${{ parameters.depends }}
+    lockBehavior: sequential
+    jobs:
+      - job: cart
+        displayName: Cart service
+        steps:
+          - task: AzureLoadTest@1
+            displayName: Load GET 50 users
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              loadTestConfigFile: src/cart/test/load-get-50-users.yaml
+              loadTestResource: shopping-cart-devops-demo
+              resourceGroup: shopping-cart-devops-demo
+              env: |
+                [
+                  {
+                    "name": "HTTP_DOMAIN",
+                    "value": "shopping-cart-devops-demo.westeurope.cloudapp.azure.com"
+                  },
+                  {
+                    "name": "HTTP_ROOT_PATH",
+                    "value": "/cart-${{ parameters.instance }}"
+                  }
+                ]

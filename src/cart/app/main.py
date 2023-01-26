@@ -11,12 +11,10 @@ import os
 
 
 APP_VERSION = os.getenv("APP_VERSION")
-APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv(
-    "APPLICATIONINSIGHTS_CONNECTION_STRING"
-)
 
 # Init logging
 logging.basicConfig(level=logging.INFO)
+logging.getLogger().addHandler(AzureLogHandler())
 logger = logging.getLogger(__name__)
 # Init FastAPI
 api = FastAPI(title="cart", version=APP_VERSION)
@@ -25,18 +23,10 @@ config_integration.trace_integrations(["logging", "threading"])
 api.tracer = Tracer(exporter=AzureExporter(), sampler=AlwaysOnSampler())
 
 
-if not APPLICATIONINSIGHTS_CONNECTION_STRING:
-    logger.warn(
-        "Azure Application Insights disabled, no APPLICATIONINSIGHTS_CONNECTION_STRING env var defined"
-    )
 
-else:
-    handler = AzureLogHandler()
-    logging.getLogger().addHandler(handler)
-
-    @api.middleware("http")
-    async def trace_context(req: Request, next) -> Response:
-        return await utils.setup_trace_context(req, next, api)
+@api.middleware("http")
+async def trace_context(req: Request, next) -> Response:
+    return await utils.setup_trace_context(req, next, api)
 
 
 @api.get("/", status_code=501)

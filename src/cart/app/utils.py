@@ -17,6 +17,7 @@ HTTP_REQUEST_SIZE = COMMON_ATTRIBUTES["HTTP_REQUEST_SIZE"]
 HTTP_STATUS_CODE = COMMON_ATTRIBUTES["HTTP_STATUS_CODE"]
 HTTP_URL = COMMON_ATTRIBUTES["HTTP_URL"]
 HTTP_USER_AGENT = COMMON_ATTRIBUTES["HTTP_USER_AGENT"]
+STACKTRACE = COMMON_ATTRIBUTES["STACKTRACE"]
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ async def setup_trace_context(req: Request, next, api: FastAPI) -> Response:
 
 
 async def handle_json_exception(exc: Exception, api: FastAPI) -> Response:
+    error_stacktrace = str(exc)
     error_message = exc.errors() if hasattr(exc, "errors") else "Internal Server Error"
     error_name = exc.status_code if hasattr(exc, "status_code") else 500
 
@@ -75,6 +77,9 @@ async def handle_json_exception(exc: Exception, api: FastAPI) -> Response:
     )
     api.tracer.add_attribute_to_current_span(
         attribute_key=ERROR_NAME, attribute_value=error_name
+    )
+    api.tracer.add_attribute_to_current_span(
+        attribute_key=STACKTRACE, attribute_value=error_stacktrace
     )
 
     return JSONResponse(

@@ -20,6 +20,12 @@ stages:
         env : dev
         instance: ${{ variables.branch_sanitized }}
 
+    - template: cicd/pipelines/test-integration.yaml
+      parameters:
+        depends: deploy_dev_${{ replace(variables.branch_sanitized, '-', '_') }}
+        env : dev
+        instance: ${{ variables.branch_sanitized }}
+
   - ${{ if eq(variables.branch_raw, 'master') }}:
       - template: cicd/pipelines/deploy.yaml
         parameters:

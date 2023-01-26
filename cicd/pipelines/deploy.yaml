@@ -52,23 +52,23 @@ stages:
 
                 # Exec our build
                 make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
-      - job: items
-        displayName: Items service
-        steps:
-          - checkout: self
-            displayName: Checkout sources
-            fetchDepth: 0
-            fetchTags: true
+      # - job: items
+      #   displayName: Items service
+      #   steps:
+      #     - checkout: self
+      #       displayName: Checkout sources
+      #       fetchDepth: 0
+      #       fetchTags: true
 
-          - task: AzureCLI@2
-            displayName: Deploy build
-            env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                # Exec our build
-                make --directory ./src/items env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+      #     - task: AzureCLI@2
+      #       displayName: Deploy build
+      #       env:
+      #         # Connect to Azure DevOps Artifacts
+      #         AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+      #       inputs:
+      #         azureSubscription: azure-shopping-cart-devops-demo
+      #         scriptType: bash
+      #         scriptLocation: inlineScript
+      #         inlineScript: |
+      #           # Exec our build
+      #           make --directory ./src/items env=${{ parameters.env }} instance=${{ parameters.instance }} deploy

@@ -5,9 +5,11 @@ metadata:
   labels:
     {{- include "this.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%
+      maxUnavailable: 0
   selector:
     matchLabels:
       {{- include "this.selectorLabels" . | nindent 6 }}
@@ -15,6 +17,7 @@ spec:
     metadata:
       labels:
         {{- include "this.selectorLabels" . | nindent 8 }}
+        azure.workload.identity/use: "true"
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
     spec:
@@ -34,20 +37,21 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           livenessProbe:
-            failureThreshold: 3
             periodSeconds: 5
             timeoutSeconds: 5
-            initialDelaySeconds: 10
             httpGet:
               path: /health/liveness
               port: http
           readinessProbe:
-            failureThreshold: 3
             periodSeconds: 15
             timeoutSeconds: 5
-            initialDelaySeconds: 10
             httpGet:
               path: /health/readiness
+              port: http
+          startupProbe:
+            periodSeconds: 5
+            failureThreshold: 30
+            tcpSocket:
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

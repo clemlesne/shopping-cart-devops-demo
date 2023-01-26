@@ -1,32 +1,43 @@
-{{- if .Values.autoscaling.enabled }}
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
+# apiVersion: keda.sh/v1alpha1
+# kind: TriggerAuthentication
+# metadata:
+#   name: {{ include "this.fullname" . }}
+# spec:
+#   podIdentity:
+#     provider: azure-workload
+#     identityId: {{ .Values.secrets.userAssignedClientId }}
+# ---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
 metadata:
   name: {{ include "this.fullname" . }}
   labels:
     {{- include "this.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
     name: {{ include "this.fullname" . }}
-  minReplicas: {{ .Values.autoscaling.minReplicas }}
-  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
-  metrics:
-    {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
-    {{- end }}
-    {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
-    {{- end }}
-{{- end }}
+  maxReplicaCount: {{ .Values.autoscaling.maxReplicas }}
+  minReplicaCount: {{ .Values.autoscaling.minReplicas }}
+  pollingInterval: 5
+  cooldownPeriod: 30
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "60"
+    # - type: memory
+    #   metricType: Utilization
+    #   metadata:
+    #     value: "60"
+    # - type: azure-app-insights
+    #   # Get metrics list with az monitor app-insights metrics get-metadata --app [app insights id]
+    #   metadata:
+    #     applicationInsightsId: {{ .Values.autoscaling.applicationInsightsId }}
+    #     metricAggregationTimespan: "0:1"
+    #     metricAggregationType: sum
+    #     metricFilter: cloud/roleInstance sw ['{{ include "this.fullname" . }}']
+    #     metricId: "requests/count"
+    #     targetValue: "50"
+    #     tenantId: {{ .Values.azure.tenantId }}
+    #   authenticationRef:
+    #     name: {{ include "this.fullname" . }}
