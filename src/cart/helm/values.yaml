@@ -31,15 +31,15 @@ resources:
     cpu: 200m
     memory: 200Mi
 
+azure:
+  tenantId: 0dbe2ab8-25ae-40a9-be67-b9afd61f7068
+
 autoscaling:
-  enabled: true
-  minReplicas: 2
+  minReplicas: 1
   maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  targetMemoryUtilizationPercentage: 80
+  # applicationInsightsId: a2959c16-db50-4f56-a280-c110d1848306
 
 secrets:
   keyvaultName: shoppingcartdevopsdemo
-  tenantId: 0dbe2ab8-25ae-40a9-be67-b9afd61f7068
   userAssignedClientId: 933a70e7-4238-448a-96f4-5651c3516f7c
   serviceAccountName: workload-identity-sa

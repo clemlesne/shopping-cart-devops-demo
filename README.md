@@ -55,7 +55,7 @@ Create the [Azure Kubernetes Service documentation](https://learn.microsoft.com/
 # TBD
 ```
 
-Install the Ingress:
+Install the Ingress, [Traefik](https://traefik.io/):
 
 ```bash
 helm repo add traefik https://traefik.github.io/charts
@@ -133,11 +133,42 @@ metadata:
 EOF
 
 az identity federated-credential create \
-  --name myfederatedIdentity \
+  --name "sa-k8s-${USER_ASSIGNED_IDENTITY_NAME}-${SERVICE_ACCOUNT_NAMESPACE}-${SERVICE_ACCOUNT_NAME}" \
   --identity-name "${USER_ASSIGNED_IDENTITY_NAME}" \
   --resource-group "shopping-cart-devops-demo" \
   --issuer "${AKS_OIDC_ISSUER}" \
   --subject system:serviceaccount:"${SERVICE_ACCOUNT_NAMESPACE}":"${SERVICE_ACCOUNT_NAME}"
+```
+
+Install [KEDA](https://keda.sh/docs/2.9/deploy/):
+
+```bash
+SERVICE_ACCOUNT_NAMESPACE="keda"
+SERVICE_ACCOUNT_NAME="keda-operator"
+
+az identity federated-credential create \
+  --name "sa-k8s-${USER_ASSIGNED_IDENTITY_NAME}-${SERVICE_ACCOUNT_NAMESPACE}-${SERVICE_ACCOUNT_NAME}" \
+  --identity-name "${USER_ASSIGNED_IDENTITY_NAME}" \
+  --resource-group "shopping-cart-devops-demo" \
+  --issuer "${AKS_OIDC_ISSUER}" \
+  --subject system:serviceaccount:"${SERVICE_ACCOUNT_NAMESPACE}":"${SERVICE_ACCOUNT_NAME}"
+
+TENANT_ID=$(az account tenant list | jq -r '.[0].tenantId')
+
+helm repo add kedacore https://kedacore.github.io/charts
+
+helm repo update
+
+kubectl create ns keda
+
+helm upgrade \
+  --install \
+  --namespace keda \
+  --set podIdentity.azureWorkload.enabled=true \
+  --set podIdentity.azureWorkload.tenantId=${TENANT_ID} \
+  --set podIdentity.azureWorkload.clientId=${USER_ASSIGNED_CLIENT_ID} \
+  keda \
+  kedacore/keda
 ```
 
 #### Azure Load Testing

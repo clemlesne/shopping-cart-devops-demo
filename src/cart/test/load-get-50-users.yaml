@@ -1,0 +1,9 @@
+version: v0.1
+testId: defaultTest
+displayName: Default Test
+testPlan: load-get-50-users.jmx
+description: Load test website home page
+engineInstances: 1
+failureCriteria:
+  - p95(response_time_ms) > 1000
+  - percentage(error) > 1
