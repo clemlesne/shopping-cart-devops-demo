@@ -1,0 +1,17 @@
+version: v0.1
+testId: crud10users
+displayName: Crud (10 users)
+testPlan: load-test-crud.jmx
+description: CRUD operations (create, get, delete)
+engineInstances: 1
+failureCriteria:
+  - p50(response_time_ms) > 200
+  - p95(response_time_ms) > 1500
+  - percentage(error) > 1
+env:
+  - name: SIMULTANEOUS_USERS
+    value: 10
+  - name: RAMP_UP_PERIOD
+    value: 120
+  - name: DURATION
+    value: 300

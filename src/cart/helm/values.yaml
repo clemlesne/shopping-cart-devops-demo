@@ -34,6 +34,15 @@ resources:
 azure:
   tenantId: 0dbe2ab8-25ae-40a9-be67-b9afd61f7068
 
+databases:
+  cosmosdb:
+    uri: https://shopping-cart-devops-demo.documents.azure.com:443/
+  redis:
+    host: shopping-cart-devops-demo.redis.cache.windows.net
+    port: 6380
+    username: ""
+    db: 0
+
 autoscaling:
   minReplicas: 1
   maxReplicas: 100

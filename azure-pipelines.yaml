@@ -11,6 +11,8 @@ variables:
   branch_sanitized: ${{ replace(replace(variables.branch_raw, '/', '-'), '_', '-') }}
 
 stages:
+  - template: cicd/pipelines/init.yaml
+
   - template: cicd/pipelines/integration.yaml
 
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:

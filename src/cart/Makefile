@@ -27,7 +27,6 @@ test-local:
 build:
 	@$(docker) build \
 		--build-arg APP_VERSION=$(version_full) \
-		--cache-from shopping-cart-devops-demo/cart \
 		--tag shopping-cart-devops-demo/cart:$(version_small) \
 		.
 

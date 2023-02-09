@@ -1,6 +1,10 @@
+azure-cosmos==4.3.0
+azure-identity==1.12.0
 fastapi==0.89.1
 opencensus-ext-azure==1.1.7
 opencensus-ext-logging==0.1.1
 opencensus-ext-threading==0.1.2
-opencensus==0.11.0
+opencensus==0.11.1
+python-dotenv==0.21.1
+redis==4.4.2
 uvicorn==0.20.0

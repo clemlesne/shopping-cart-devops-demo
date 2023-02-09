@@ -14,20 +14,50 @@ stages:
         displayName: Cart service
         steps:
           - task: AzureLoadTest@1
-            displayName: Load GET 50 users
+            displayName: Load test CRUD (10 users)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
-              loadTestConfigFile: src/cart/test/load-get-50-users.yaml
+              loadTestConfigFile: src/cart/test/load-test-crud-10-users.yaml
               loadTestResource: shopping-cart-devops-demo
               resourceGroup: shopping-cart-devops-demo
               env: |
-                [
-                  {
-                    "name": "HTTP_DOMAIN",
-                    "value": "shopping-cart-devops-demo.westeurope.cloudapp.azure.com"
-                  },
-                  {
-                    "name": "HTTP_ROOT_PATH",
-                    "value": "/cart-${{ parameters.instance }}"
-                  }
-                ]
+                [{
+                  "name": "HTTP_DOMAIN",
+                  "value": "shopping-cart-devops-demo.westeurope.cloudapp.azure.com"
+                },
+                {
+                  "name": "HTTP_ROOT_PATH",
+                  "value": "/cart-${{ parameters.instance }}"
+                },
+                {
+                  "name": "HTTP_PROTOCOL",
+                  "value": "https"
+                },
+                {
+                  "name": "HTTP_PORT",
+                  "value": "443"
+                }]
+          - task: AzureLoadTest@1
+            displayName: Load test Get all (10 users)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              loadTestConfigFile: src/cart/test/load-test-get-all-10-users.yaml
+              loadTestResource: shopping-cart-devops-demo
+              resourceGroup: shopping-cart-devops-demo
+              env: |
+                [{
+                  "name": "HTTP_DOMAIN",
+                  "value": "shopping-cart-devops-demo.westeurope.cloudapp.azure.com"
+                },
+                {
+                  "name": "HTTP_ROOT_PATH",
+                  "value": "/cart-${{ parameters.instance }}"
+                },
+                {
+                  "name": "HTTP_PROTOCOL",
+                  "value": "https"
+                },
+                {
+                  "name": "HTTP_PORT",
+                  "value": "443"
+                }]

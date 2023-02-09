@@ -15,6 +15,11 @@ Prerequisites:
 ```bash
 # Install dependencies
 make install
+
+APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
+        --app shopping-cart-devops-demo \
+        --resource-group shopping-cart-devops-demo \
+    | jq -r ".connectionString")
 ```
 
 Start the local app, `make dev`. Test your code, `make test-local`. By default, port is 8081. See OpenAPI doc at [127.0.0.1:8081/redoc](http://127.0.0.1:8081/redoc).
@@ -63,8 +68,34 @@ kubelogin convert-kubeconfig -l azurecli
 
 # Create your Kubernetes namespace
 NAMESPACE=dev
-
 kubectl create ns $NAMESPACE
+
+# Create the Cosmos DB database
+az cosmosdb create \
+    --locations regionName=westeurope \
+    --name shopping-cart-devops-demo \
+    --resource-group shopping-cart-devops-demo
+
+COSMOS_DB_URI=$(az cosmosdb show \
+        --name shopping-cart-devops-demo \
+        --resource-group shopping-cart-devops-demo \
+    | jq -r ".documentEndpoint")
+
+# Create the container to store data into
+az cosmosdb sql container create \
+    --account-name shopping-cart-devops-demo \
+    --database-name shopping-cart-devops-demo \
+    --name cart \
+    --partition-key-path "/id" \
+    --resource-group shopping-cart-devops-demo
+
+# Create the Redis database (cache database)
+az redis create \
+    --location westeurope \
+    --name shopping-cart-devops-demo \
+    --resource-group shopping-cart-devops-demo \
+    --sku Basic \
+    --vm-size c0
 ```
 
 Deploy the application, `make env=$NAMESPACE deploy`.
