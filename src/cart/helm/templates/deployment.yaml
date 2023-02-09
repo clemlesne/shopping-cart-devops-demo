@@ -62,6 +62,21 @@ spec:
               mountPath: "/mnt/secrets-store"
               readOnly: true
           env:
+            - name: REDIS_HOST
+              value: {{ .Values.databases.redis.host | quote }}
+            - name: REDIS_PORT
+              value: {{ .Values.databases.redis.port | quote }}
+            - name: REDIS_USERNAME
+              value: {{ .Values.databases.redis.username | quote }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "this.fullname" . }}
+                  key: redis-password
+            - name: REDIS_DB
+              value: {{ .Values.databases.redis.db | quote }}
+            - name: COSMOS_DB_URI
+              value: {{ .Values.databases.cosmosdb.uri | quote }}
             - name: APPLICATIONINSIGHTS_CONNECTION_STRING
               valueFrom:
                 secretKeyRef:
