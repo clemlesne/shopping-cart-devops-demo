@@ -1,7 +1,8 @@
 parameters:
-  depends: ''
-  env: ''
-  instance: ''
+  - name: depends
+  - name: env
+  - name: instance
+  - name: teams_webhook
 
 stages:
   - stage: deploy_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
@@ -18,12 +19,15 @@ stages:
             fetchDepth: 0
             fetchTags: true
 
+          # Do not trust the build steps: always re-test the binaries security
+          # - template: step-cart-container-cve.yaml
+
           - task: HelmInstaller@1
             displayName: Setup Helm
             inputs:
               helmVersionToInstall: 3.10.3
 
-          - script: |
+          - bash: |
               # Install
               cd "$(Agent.TempDirectory)"
               curl -Lo kubelogin.zip https://github.com/Azure/kubelogin/releases/download/v0.0.25/kubelogin-linux-amd64.zip
@@ -52,3 +56,9 @@ stages:
 
                 # Exec our build
                 make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+
+          - template: step-send-notification.yaml
+            parameters:
+              title: Instance "${{ parameters.instance }}" in "${{ parameters.env }}" is upgraded
+              description: $(Build.SourceVersionMessage)
+              teams_webhook: ${{ parameters.teams_webhook }}

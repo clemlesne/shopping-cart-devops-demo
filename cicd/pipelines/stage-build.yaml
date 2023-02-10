@@ -1,6 +1,6 @@
 stages:
-  - stage: integration
-    displayName: Integration
+  - stage: build
+    displayName: Build
     jobs:
       - job: cart
         displayName: Cart service
@@ -46,20 +46,4 @@ stages:
           #     sleep 180
           #   displayName: Wait before container security test
 
-          - task: AzureCLI@2
-            displayName: Container security test (SAST)
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                # Make sure CLI extensions can be used
-                az config set extension.use_dynamic_install=yes_without_prompt
-
-                # Connect to Azure Container Registry
-                DOCKER_TOKEN=$(az acr login --expose-token --name shoppingcartdevopsdemo)
-                LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
-                docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
-
-                # Exec out test
-                make --directory ./src/cart server=$LOGIN_SERVER test-remote
+          - template: step-cart-container-cve.yaml
