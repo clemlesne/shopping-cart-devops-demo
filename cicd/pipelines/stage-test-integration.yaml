@@ -1,7 +1,7 @@
 parameters:
-  depends: ''
-  env: ''
-  instance: ''
+  - name: depends
+  - name: env
+  - name: instance
 
 stages:
   - stage: test_integration_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
@@ -37,6 +37,7 @@ stages:
                   "name": "HTTP_PORT",
                   "value": "443"
                 }]
+
           - task: AzureLoadTest@1
             displayName: Load test Get all (10 users)
             inputs:
