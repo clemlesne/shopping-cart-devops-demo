@@ -4,6 +4,8 @@ parameters:
   - name: teams_webhook
   - name: pipeline_url
     default: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)
+  - name: github_url
+    default: $(Build.Repository.Uri)/commit/$(Build.SourceVersion)
   - name: message_card
     # Edit at https://messagecardplayground.azurewebsites.net/
     # Note, the Teams webhook plugin is not compatible with the Adaptative Cards (https://amdesigner.azurewebsites.net/)
@@ -31,11 +33,21 @@ parameters:
         "potentialAction": [
           {
             "@type": "OpenUri",
-            "name": "Open the logs",
+            "name": "Pipeline logs",
             "targets": [
               {
                 "os": "default",
                 "uri": "%pipeline_url%"
+              }
+            ]
+          },
+          {
+            "@type": "OpenUri",
+            "name": "GitHub commit",
+            "targets": [
+              {
+                "os": "default",
+                "uri": "%github_url%"
               }
             ]
           }
@@ -56,6 +68,7 @@ steps:
 
       template=$(string_replace "$template" "%date%" "$(date)")
       template=$(string_replace "$template" "%description%" "${{ parameters.description }}")
+      template=$(string_replace "$template" "%github_url%" "${{ parameters.github_url }}")
       template=$(string_replace "$template" "%pipeline_url%" "${{ parameters.pipeline_url }}")
       template=$(string_replace "$template" "%title%" "${{ parameters.title }}")
       template=$(string_replace "$template" "%version%" "$(make version-full)")
