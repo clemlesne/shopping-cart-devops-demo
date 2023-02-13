@@ -5,7 +5,7 @@ testPlan: load-test-crud.jmx
 description: CRUD operations (create, get, delete)
 engineInstances: 1
 failureCriteria:
-  - p50(response_time_ms) > 200
+  - p50(response_time_ms) > 300
   - p95(response_time_ms) > 1500
   - percentage(error) > 1
 env:

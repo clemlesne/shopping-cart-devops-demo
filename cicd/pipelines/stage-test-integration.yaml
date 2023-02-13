@@ -15,6 +15,7 @@ stages:
         steps:
           - task: AzureLoadTest@1
             displayName: Load test CRUD (10 users)
+            retryCountOnTaskFailure: 3 # Sometimes init fails with concurrent pipelines
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               loadTestConfigFile: src/cart/test/load-test-crud-10-users.yaml
@@ -40,6 +41,7 @@ stages:
 
           - task: AzureLoadTest@1
             displayName: Load test Get all (10 users)
+            retryCountOnTaskFailure: 3 # Sometimes init fails with concurrent pipelines
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               loadTestConfigFile: src/cart/test/load-test-get-all-10-users.yaml
