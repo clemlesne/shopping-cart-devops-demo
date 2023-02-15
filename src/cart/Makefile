@@ -9,7 +9,6 @@ helm_dest ?= $(shell echo "$(shell echo $(dest_path))$(shell echo "/cart-$(versi
 install:
 	@pip install --requirement ./requirements/default.txt
 	@pip install --requirement ./requirements/dev.txt
-	@pip freeze --all --requirement ./requirements/default.txt > ./requirements/prod.txt
 
 dev:
 	@APP_VERSION=$(version_full) uvicorn app.main:api \

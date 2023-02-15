@@ -9,7 +9,7 @@ RUN python -m venv /venv
 ENV PATH=/venv/bin:$PATH
 
 COPY ./requirements .
-RUN pip install --requirement prod.txt
+RUN pip install --requirement default.txt
 
 # Output container (2/2)
 FROM docker.io/library/python:3.11-slim
