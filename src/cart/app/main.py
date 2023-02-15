@@ -14,7 +14,7 @@ from opencensus.trace.tracer import Tracer
 from pydantic.error_wrappers import ValidationError
 from redis import Redis
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 import logging
 import os
@@ -26,7 +26,9 @@ REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_USERNAME = os.getenv("REDIS_USERNAME")
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 REDIS_DB = os.getenv("REDIS_DB")
-APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv(
+    "APPLICATIONINSIGHTS_CONNECTION_STRING"
+)
 COSMOS_DB_URI = os.getenv("COSMOS_DB_URI")
 COSMOS_DB_CONTAINER = "cart"
 
@@ -34,7 +36,9 @@ COSMOS_DB_CONTAINER = "cart"
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 try:
-    logging.getLogger().addHandler(AzureLogHandler(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING))
+    logging.getLogger().addHandler(
+        AzureLogHandler(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING)
+    )
     azure_log_handler = True
 except Exception as exc:
     logger.exception(exc)
@@ -46,7 +50,10 @@ api = FastAPI(title="cart", version=APP_VERSION)
 # Init tracing
 try:
     config_integration.trace_integrations(["logging", "threading"])
-    api.tracer = Tracer(exporter=AzureExporter(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING), sampler=AlwaysOnSampler())
+    api.tracer = Tracer(
+        exporter=AzureExporter(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING),
+        sampler=AlwaysOnSampler(),
+    )
 except Exception as exc:
     logger.exception(exc)
     api.tracer = None
@@ -54,14 +61,28 @@ except Exception as exc:
 # Cosmos DB
 try:
     az_credentials = DefaultAzureCredential()
-    dbclient = CosmosClient(COSMOS_DB_URI, credential=az_credentials, consistency_level="Session").get_database_client("shopping-cart-devops-demo").get_container_client(COSMOS_DB_CONTAINER)
+    dbclient = (
+        CosmosClient(
+            COSMOS_DB_URI, credential=az_credentials, consistency_level="Session"
+        )
+        .get_database_client("shopping-cart-devops-demo")
+        .get_container_client(COSMOS_DB_CONTAINER)
+    )
 except Exception as exc:
     logger.exception(exc)
     dbclient = None
 
 # Redis DB
 try:
-    cacheclient = Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, username=REDIS_USERNAME, password=REDIS_PASSWORD, ssl=True, decode_responses=True)
+    cacheclient = Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        db=REDIS_DB,
+        username=REDIS_USERNAME,
+        password=REDIS_PASSWORD,
+        ssl=True,
+        decode_responses=True,
+    )
 except Exception as exc:
     logger.exception(exc)
     cacheclient = None
@@ -106,7 +127,7 @@ async def health_readiness_get():
     # Test database with a transaction (insert, read, delete)
     try:
         key = str(uuid4())
-        document = { "id": key, "test": "test" }
+        document = {"id": key, "test": "test"}
         dbclient.upsert_item(document)
         assert "test" == dbclient.read_item(item=key, partition_key=key)["test"]
         dbclient.delete_item(item=key, partition_key=key)
@@ -122,27 +143,17 @@ async def health_readiness_get():
     monitoring_logger_tracer = Status.FAIL if not api.tracer else Status.OK
 
     model = ReadinessModel(
-        status = Status.OK,
-        checks = [
+        status=Status.OK,
+        checks=[
             ReadinessCheckModel(
-                id = "startup",
-                status = Status.OK,
+                id="startup",
+                status=Status.OK,
             ),
+            ReadinessCheckModel(id="database", status=database_check),
+            ReadinessCheckModel(id="cache", status=cache_check),
+            ReadinessCheckModel(id="monitoring-logger", status=monitoring_logger_check),
             ReadinessCheckModel(
-                id = "database",
-                status = database_check
-            ),
-            ReadinessCheckModel(
-                id = "cache",
-                status = cache_check
-            ),
-            ReadinessCheckModel(
-                id = "monitoring-logger",
-                status = monitoring_logger_check
-            ),
-            ReadinessCheckModel(
-                id = "monitoring-tracer",
-                status = monitoring_logger_tracer
+                id="monitoring-tracer", status=monitoring_logger_tracer
             ),
         ],
     )
@@ -187,10 +198,12 @@ async def cart_get_all(next: Optional[str] = None) -> CartPaginateModel:
             logger.debug("Corrupted item detected, ignoring it")
 
     model = CartPaginateModel(
-        items = items,
-        next = items[len(items) - 1].id if len(items) > 0 else None,
+        items=items,
+        next=items[len(items) - 1].id if len(items) > 0 else None,
     )
-    cacheclient.set(f"{cache_prefix}-{next}", model.json(), ex=5) # Expires in 5 seconds
+    cacheclient.set(
+        f"{cache_prefix}-{next}", model.json(), ex=5
+    )  # Expires in 5 seconds
     return model
 
 

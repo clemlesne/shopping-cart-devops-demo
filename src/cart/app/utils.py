@@ -34,7 +34,13 @@ async def handle_exception(req: Request, exc: Exception, detailed=False) -> Resp
         exception_id = span.span_id
         http_code = exc.status_code if hasattr(exc, "status_code") else 500
         status_code = proto_error_code_from_http(http_code)
-        status_details = str(jsonable_encoder(exc.errors())) if hasattr(exc, "errors") else exc.detail if hasattr(exc, "detail") else traceback.format_exc()
+        status_details = (
+            str(jsonable_encoder(exc.errors()))
+            if hasattr(exc, "errors")
+            else exc.detail
+            if hasattr(exc, "detail")
+            else traceback.format_exc()
+        )
         status_message = str(exc)
 
         span.status = Status(
@@ -44,12 +50,12 @@ async def handle_exception(req: Request, exc: Exception, detailed=False) -> Resp
         )
 
         model = ExceptionModel(
-            exception = ExceptionDetailModel(
-                code = http_code,
-                details = status_details if detailed else None,
-                id = exception_id,
-                message = status_message,
-                type = class_name,
+            exception=ExceptionDetailModel(
+                code=http_code,
+                details=status_details if detailed else None,
+                id=exception_id,
+                message=status_message,
+                type=class_name,
             ),
         )
 
@@ -108,6 +114,8 @@ async def setup_trace_context(req: Request, next) -> Response:
 See: https://opencensus.io/tracing/span/status/#2
 See: https://github.com/encode/starlette/blob/ea70fd57b286824350da88c6d484c32bdf31627a/starlette/status.py
 """
+
+
 def proto_error_code_from_http(status: int) -> int:
     if status >= 200 or status < 300:
         return code_pb2.OK

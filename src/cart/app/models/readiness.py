@@ -4,8 +4,8 @@ from typing import List
 
 
 class Status(str, Enum):
-    FAIL='fail'
-    OK='ok'
+    FAIL = "fail"
+    OK = "ok"
 
 
 class ReadinessCheckModel(BaseModel):
@@ -17,5 +17,5 @@ class ReadinessCheckModel(BaseModel):
 
 
 class ReadinessModel(BaseModel):
-	checks: List[ReadinessCheckModel]
-	status: str
+    checks: List[ReadinessCheckModel]
+    status: str

@@ -3,12 +3,16 @@ from typing import Optional, List
 
 
 class CartItemModel(BaseModel):
-	id: str = Field(regex = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
-	quantity: str
+    id: str = Field(
+        regex=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    )
+    quantity: str
 
 
 class CartModel(BaseModel):
-    id: Optional[str] = Field(regex = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+    id: Optional[str] = Field(
+        regex=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    )
     items: List[CartItemModel]
 
 
