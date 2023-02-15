@@ -22,7 +22,13 @@ dev:
 
 test-local:
 	@black ./app
-	@helm lint ./helm
+	@helm lint --strict ./helm
+	@semgrep ci --use-git-ignore --autofix --config auto
+
+test-ci:
+	@black --diff ./app
+	@helm lint --strict ./helm
+	@semgrep ci --use-git-ignore --no-autofix --config auto
 
 build:
 	@$(docker) build \

@@ -10,6 +10,14 @@ stages:
             fetchDepth: 0
             fetchTags: true
 
+          - bash: |
+              make --directory ./src/cart install
+            displayName: Install deps
+
+          - bash: |
+              make --directory ./src/cart test-ci
+            displayName: Test
+
           - task: DockerInstaller@0
             displayName: Setup Docker
             inputs:
