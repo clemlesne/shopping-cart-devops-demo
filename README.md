@@ -206,6 +206,7 @@ flowchart TB
   teams -- Sends message --> developers
   this -- Informs about anormal activites --> email
   this -- Informs about anormal activites --> teams
+  user -- Views items, adds items to the cart --> this
 ```
 
 ### Container diagram
@@ -227,6 +228,7 @@ flowchart TB
     this_iam[IAM]
     this_integration[Integration]
     this_interface[Interface]
+    this_items[Items]
     this_monitoring[Monitoring]
   end
 
@@ -238,9 +240,11 @@ flowchart TB
   %% This relations
   azdevops -- Updates the application --> this
   this_integration -- Routes to --> this_cart
+  this_integration -- Routes to --> this_items
   this_integration -- Validates signatures --> this_iam
   this_monitoring -- Informs about anormal activites --> email
   this_monitoring -- Informs about anormal activites --> teams
+  user -- Views items, adds items to the cart --> this_integration
   user -- Indentify --> this_iam
   user -- Loads resources --> this_interface
 ```
