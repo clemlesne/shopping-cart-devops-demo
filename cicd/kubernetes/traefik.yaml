@@ -1,0 +1,25 @@
+deployment:
+  replicas: null
+autoscaling:
+  enabled: true
+  maxReplicas: 2
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60
+tls:
+  options:
+    default:
+      minVersion: VersionTLS13
+      curvePreferences:
+        - X25519
+      sniStrict: true
