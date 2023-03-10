@@ -62,10 +62,8 @@ except Exception as exc:
 try:
     az_credentials = DefaultAzureCredential()
     dbclient = (
-        CosmosClient(
-            COSMOS_DB_URI, credential=az_credentials, consistency_level="Session"
-        )
-        .get_database_client("shopping-cart-devops-demo")
+        CosmosClient(COSMOS_DB_URI, credential=az_credentials)
+        .get_database_client(COSMOS_DB_CONTAINER)
         .get_container_client(COSMOS_DB_CONTAINER)
     )
 except Exception as exc:
