@@ -14,7 +14,15 @@ RUN pip install --requirement default.txt
 # Output container (2/2)
 FROM docker.io/library/python:3.11-slim
 
-RUN useradd -m appuser && mkdir /app && chown -R appuser:appuser /app
+# Chaos Studio pre-requirements for CPU pressure test (https://learn.microsoft.com/en-us/azure/chaos-studio/chaos-studio-fault-library#cpu-pressure)
+RUN apt-get update \
+  && apt-get -y install unzip \
+  && apt-get -y install stress-ng
+
+RUN useradd -m appuser \
+  && mkdir /app \
+  && chown -R appuser:appuser /app
+
 USER appuser
 
 COPY --from=build /venv /venv

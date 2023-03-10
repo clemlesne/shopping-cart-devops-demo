@@ -89,6 +89,14 @@ az cosmosdb sql container create \
     --partition-key-path "/id" \
     --resource-group shopping-cart-devops-demo
 
+# Allow the ap to access the database
+az cosmosdb sql role assignment create \
+    --account-name shopping-cart-devops-demo \
+    --resource-group shopping-cart-devops-demo \
+    --role-definition-name "Cosmos DB Built-in Data Contributor" \
+    --scope "/" \
+    --principal-id 2dbbd1fa-417f-48ab-aba2-d54057938b75
+
 # Create the Redis database (cache database)
 az redis create \
     --location westeurope \

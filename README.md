@@ -6,15 +6,15 @@ Something (simple) you can demonstrate to showcase the Microsoft Azure DevSecOps
 
 Features:
 
-- [ ] 0 trust (= no static credentials, only managed identities by Azure AD)
-- [ ] Chaos engineering with [Azure Chaos Studio](https://azure.microsoft.com/en-us/products/chaos-studio/)
-- [ ] DAST tests
+- [x] 0 trust (= no static credentials, only managed identities by Azure AD)
+- [x] Chaos engineering with [Azure Chaos Studio](https://azure.microsoft.com/en-us/products/chaos-studio/)
+- [x] DAST tests
 - [ ] Integration layer with [Azure API Management](https://azure.microsoft.com/en-us/products/api-management)
 - [ ] Integration tests
 - [ ] OpenID authentication with a Progressive Web App app
 - [ ] SAST tests with [GitHub Advanced Security](https://docs.azdevops.com/en/get-started/learning-about-azdevops/about-azdevops-advanced-security)
 - [x] Serverless architecture
-- [ ] Stress tests with [Azure Load Testing](https://azure.microsoft.com/en-us/products/load-testing)
+- [x] Stress tests with [Azure Load Testing](https://azure.microsoft.com/en-us/products/load-testing)
 - [ ] Unit tests
 - [x] DevOps integration with Microsoft 365 and Azure ecosystems
 
@@ -88,8 +88,6 @@ az aks update \
 
 Install Chaos Mesh ([Chaos Mesh documentation](https://chaos-mesh.org/docs/production-installation-using-helm/#verify-the-installation), [Azure Chaos Studio documentation](https://learn.microsoft.com/en-us/azure/chaos-studio/chaos-studio-tutorial-aks-portal#set-up-chaos-mesh-on-your-aks-cluster)) for Kubernetes:
 
-First, make sure you are logged-in to Kubernetes.
-
 ```bash
 kubectl create ns chaos-testing
 
@@ -97,7 +95,9 @@ helm install chaos-mesh chaos-mesh/chaos-mesh \
   --namespace=chaos-testing \
   --set chaosDaemon.runtime=containerd \
   --set chaosDaemon.socketPath=/run/containerd/containerd.sock \
-  --version 2.5.0
+  --version 2.5.1
+
+az role assignment create --role "Cosmos DB Operator" --assignee-object-id $EXPERIMENT_PRINCIPAL_ID --scope $RESOURCE_ID
 ```
 
 Enable [Workload Identity](https://learn.microsoft.com/en-us/azure/aks/workload-identity-deploy-cluster) to the Kubernetes cluster:

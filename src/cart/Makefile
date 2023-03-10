@@ -93,7 +93,7 @@ destroy:
 test-remote:
 	@$(docker) pull $(server)/cart:$(version_small)
 
-	$(eval image_sha = $(shell $(docker) image inspect $(server)/cart:$(version_small) | jq --raw-output '[.[].RepoDigests[] | select(. | startswith("$(server)")) | match("^.*(sha256.*)$$").captures[0].string] | "(\"" + join("\", \"") + "\")"'))
+	$(eval image_sha = $(shell $(docker) image inspect $(server)/cart:$(version_small) | jq -r '[.[].RepoDigests[] | select(. | startswith("$(server)")) | match("^.*(sha256.*)$$").captures[0].string] | "(\"" + join("\", \"") + "\")"'))
 
 	@echo "Testing container $(image_sha)"
 
