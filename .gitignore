@@ -1,3 +1,6 @@
+# OWASP ZAP
+zaproxy/
+
 # version.sh cache file
 .version-cache-date
 

@@ -49,3 +49,25 @@ stages:
           - template: step-cart-lod-test-get-all.yaml
             parameters:
               instance: ${{ parameters.instance }}
+
+      - job: cart_dast
+        displayName: Cart service - DAST
+        steps:
+          - task: DockerInstaller@0
+            displayName: Setup Docker
+            inputs:
+              dockerVersion: 20.10.9
+
+          - bash: |
+              # Ignore exit code 2, which is returned when the scan finds WARN issues
+              # See: https://www.zaproxy.org/docs/docker/full-scan
+              docker run \
+                -v ${AGENT_BUILD_DIRECTORY}:/zap/wrk/:rw \
+                -t owasp/zap2docker-stable:2.12.0 \
+                  zap-full-scan.py \
+                    -t https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart-${{ parameters.instance }} \
+                    -z "-openapiurl https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart-${{ parameters.instance }}/openapi.json" \
+                 2> /dev/null; (($? == 2)) && echo 'Done' >&2
+            env:
+              AGENT_BUILD_DIRECTORY: $(Agent.BuildDirectory)
+            displayName: Run tests
