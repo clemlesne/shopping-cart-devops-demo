@@ -7,6 +7,7 @@ class CartItemModel(BaseModel):
         regex=r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     )
     quantity: str
+    available: Optional[bool] = True
 
 
 class CartModel(BaseModel):
