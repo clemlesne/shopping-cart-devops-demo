@@ -10,24 +10,22 @@ function_dest := $(shell echo "$(shell echo $(dest_path))$(shell echo "/function
 install:
 	@pip install --requirement ./requirements/default.txt
 	@pip install --requirement ./requirements/dev.txt
-	@pip freeze --all --requirement ./requirements/default.txt > ./requirements.txt
+	@pip freeze --all --requirement ./requirements/default.txt > ./requirements/prod.txt
 
 test-local:
 	@black app
 
 # TODO: Use "env" and "instance" variables to custom the deploy destination
 deploy:
-	@func azure functionapp publish shopping-cart-devops-demo-items \
-		--build local \
-		--build-native-deps \
-		--python
+	@pip install \
+		--target=".python_packages/lib/site-packages" \
+		--requirement ./requirements/prod.txt \
+		--platform manylinux_2_17_x86_64 \
+		--only-binary=:all:
+
+	@func azure functionapp publish shopping-cart-devops-demo-items --no-build --python
 
 	@az functionapp config appsettings set \
 		--name shopping-cart-devops-demo-items \
 		--resource-group shopping-cart-devops-demo \
 		--settings APP_VERSION=$(version_full)
-
-watch-build:
-	@az webapp log tail \
-		--name shopping-cart-devops-demo-items \
-		--resource-group shopping-cart-devops-demo

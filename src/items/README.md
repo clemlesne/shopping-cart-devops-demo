@@ -60,13 +60,13 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
         --resource-group shopping-cart-devops-demo \
     | jq -r ".connectionString")
 
-# Enable Azure Application Insights in the App Functions (APPLICATIONINSIGHTS_CONNECTION_STRING) plus recommended Python behavior (PYTHON_ENABLE_WORKER_EXTENSIONS)
-# See: https://learn.microsoft.com/en-us/azure/azure-monitor/app/monitor-functions
+# Enable Azure Application Insights in the App Functions (APPLICATIONINSIGHTS_CONNECTION_STRING) and enable Python v2 model (AzureWebJobsFeatureFlags)
 # See: https://learn.microsoft.com/en-us/azure/azure-monitor/app/sdk-connection-string?tabs=net#environment-variable
+# See: https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-cli-python?pivots=python-mode-decorators&tabs=azure-cli%2Cbash
 az functionapp config appsettings set \
     --name shopping-cart-devops-demo-items \
     --resource-group shopping-cart-devops-demo \
-    --settings APPLICATIONINSIGHTS_CONNECTION_STRING=$APPLICATIONINSIGHTS_CONNECTION_STRING PYTHON_ENABLE_WORKER_EXTENSIONS=1
+    --settings APPLICATIONINSIGHTS_CONNECTION_STRING=$APPLICATIONINSIGHTS_CONNECTION_STRING AzureWebJobsFeatureFlags=EnableWorkerIndexing
 ```
 
 Deploy the application, `make deploy`.

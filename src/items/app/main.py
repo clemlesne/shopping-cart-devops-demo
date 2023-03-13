@@ -19,6 +19,7 @@ logging.getLogger().addHandler(AzureLogHandler())
 logger = logging.getLogger(__name__)
 # Init FastAPI
 api = FastAPI(title="items", version=APP_VERSION)
+bp = func.Blueprint().AsgiFunctionApp(app=api, http_auth_level=func.AuthLevel.ANONYMOUS)
 # Init tracing
 OpenCensusExtension.configure()  # Set up "api.tracer"
 config_integration.trace_integrations(["logging"])
@@ -80,8 +81,3 @@ async def cart_get(cart_id: UUID):
             },
         ],
     }
-
-
-async def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
-    api.tracer = context.tracer
-    return await func.AsgiMiddleware(api).handle_async(req, context)
