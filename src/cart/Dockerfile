@@ -3,13 +3,13 @@ FROM docker.io/library/python:3.11-slim as build
 
 RUN apt-get update \
   && apt-get install --yes gcc python3-dev \
-  && pip install --upgrade pip setuptools wheel
+  && python3 -m pip install --upgrade pip setuptools wheel
 
 RUN python -m venv /venv
 ENV PATH=/venv/bin:$PATH
 
-COPY ./requirements .
-RUN pip install --requirement default.txt
+COPY ./requirements/prod.txt .
+RUN python3 -m pip install --requirement prod.txt
 
 # Output container (2/2)
 FROM docker.io/library/python:3.11-slim

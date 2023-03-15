@@ -7,7 +7,7 @@ opencensus-ext-threading==0.1.2
 opencensus==0.11.1
 python-dotenv==0.21.1
 redis==4.4.2
-uvicorn==0.20.0
+uvicorn[standard]==0.20.0
 # CVE-2022-3996
 cryptography>39.0.0
 # CVE-2022-40897

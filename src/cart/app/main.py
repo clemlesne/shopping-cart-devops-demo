@@ -54,6 +54,10 @@ try:
         exporter=AzureExporter(connection_string=APPLICATIONINSIGHTS_CONNECTION_STRING),
         sampler=AlwaysOnSampler(),
     )
+
+    @api.middleware("http")
+    async def trace_context(req: Request, next) -> Response:
+        return await utils.setup_trace_context(req, next)
 except Exception as exc:
     logger.exception(exc)
     api.tracer = None
@@ -84,11 +88,6 @@ try:
 except Exception as exc:
     logger.exception(exc)
     cacheclient = None
-
-
-@api.middleware("http")
-async def trace_context(req: Request, next) -> Response:
-    return await utils.setup_trace_context(req, next)
 
 
 @api.exception_handler(RequestValidationError)
