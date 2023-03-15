@@ -72,6 +72,38 @@ stages:
 
           - template: step-send-notification.yaml
             parameters:
-              title: Instance "${{ parameters.instance }}" in "${{ parameters.env }}" is upgraded
+              title: Cart service instance "${{ parameters.instance }}" in "${{ parameters.env }}" is upgraded
+              description: $(Build.SourceVersionMessage)
+              teams_webhook: ${{ parameters.teams_webhook }}
+
+      - job: items
+        displayName: Items service
+        steps:
+          - checkout: self
+            displayName: Checkout sources
+            fetchDepth: 0
+            fetchTags: true
+
+          - task: FuncToolsInstaller@0
+            displayName: Setup Azure Functions Core Tools
+            inputs:
+              version: '4.0.4915'
+
+          - task: AzureCLI@2
+            displayName: Deploy build
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Exec our build
+                make --directory ./src/items env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+
+          - template: step-send-notification.yaml
+            parameters:
+              title: Items service instance "${{ parameters.instance }}" in "${{ parameters.env }}" is upgraded
               description: $(Build.SourceVersionMessage)
               teams_webhook: ${{ parameters.teams_webhook }}
