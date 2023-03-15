@@ -7,8 +7,9 @@ dest_path ?= $(shell echo "$(realpath .)$(shell echo "/dest")")
 helm_dest ?= $(shell echo "$(shell echo $(dest_path))$(shell echo "/cart-$(version_small).tgz")")
 
 install:
-	@pip install --requirement ./requirements/default.txt
-	@pip install --requirement ./requirements/dev.txt
+	@python3 -m pip install --requirement ./requirements/default.txt
+	@python3 -m pip install --requirement ./requirements/dev.txt
+	@python3 -m pip freeze --local --requirement ./requirements/default.txt > ./requirements/prod.txt
 
 dev:
 	@APP_VERSION=$(version_full) uvicorn app.main:api \
@@ -16,8 +17,7 @@ dev:
 		--port 8081 \
 		--reload \
 		--timeout-keep-alive 30 \
-		--no-server-header \
-		--proxy-headers
+		--no-server-header
 
 test-local:
 	@black ./app
@@ -47,6 +47,12 @@ start:
 		-d \
 		-p 8081:8080 \
 		shopping-cart-devops-demo/cart:$(version_small)
+	echo "See http://localhost:8081"
+
+logs:
+	@$(docker) logs \
+		--follow \
+		shopping-cart-devops-demo-cart
 
 stop:
 	@$(docker) stop shopping-cart-devops-demo-cart

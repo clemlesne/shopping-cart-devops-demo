@@ -5,7 +5,7 @@ from typing import Optional
 class ExceptionDetailModel(BaseModel):
     code: int
     details: Optional[str]
-    id: str
+    id: Optional[str]
     message: str
     type: str
 

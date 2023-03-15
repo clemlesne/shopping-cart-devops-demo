@@ -27,43 +27,46 @@ logger = logging.getLogger(__name__)
 
 
 async def handle_exception(req: Request, exc: Exception, detailed=False) -> Response:
-    with req.app.tracer.span("exception") as span:
-        logger.exception(exc)
+    http_code = exc.status_code if hasattr(exc, "status_code") else 500
+    status_code = proto_error_code_from_http(http_code)
+    status_details = (
+        str(jsonable_encoder(exc.errors()))
+        if hasattr(exc, "errors")
+        else exc.detail
+        if hasattr(exc, "detail")
+        else traceback.format_exc()
+    )
+    exception_id = None
+    class_name = type(exc).__name__
+    status_message = str(exc)
 
-        class_name = type(exc).__name__
-        exception_id = span.span_id
-        http_code = exc.status_code if hasattr(exc, "status_code") else 500
-        status_code = proto_error_code_from_http(http_code)
-        status_details = (
-            str(jsonable_encoder(exc.errors()))
-            if hasattr(exc, "errors")
-            else exc.detail
-            if hasattr(exc, "detail")
-            else traceback.format_exc()
-        )
-        status_message = str(exc)
+    logger.exception(exc)
 
-        span.status = Status(
-            code=status_code,
-            details=status_details,
-            message=status_message,
-        )
+    if req.app.tracer:
+        with req.app.tracer.span("exception") as span:
+            exception_id = span.span_id
 
-        model = ExceptionModel(
-            exception=ExceptionDetailModel(
-                code=http_code,
-                details=status_details if detailed else None,
-                id=exception_id,
+            span.status = Status(
+                code=status_code,
+                details=status_details,
                 message=status_message,
-                type=class_name,
-            ),
-        )
+            )
 
-        return JSONResponse(
-            content=jsonable_encoder(model),
-            headers=exc.headers if hasattr(exc, "headers") else None,
-            status_code=http_code,
-        )
+    model = ExceptionModel(
+        exception=ExceptionDetailModel(
+            code=http_code,
+            details=status_details if detailed else None,
+            id=exception_id,
+            message=status_message,
+            type=class_name,
+        ),
+    )
+
+    return JSONResponse(
+        content=jsonable_encoder(model),
+        headers=exc.headers if hasattr(exc, "headers") else None,
+        status_code=http_code,
+    )
 
 
 async def setup_trace_context(req: Request, next) -> Response:
