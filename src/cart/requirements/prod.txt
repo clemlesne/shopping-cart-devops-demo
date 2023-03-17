@@ -8,10 +8,6 @@ opencensus==0.11.1
 python-dotenv==0.21.1
 redis==4.4.2
 uvicorn==0.20.0
-# CVE-2022-3996
-cryptography==39.0.2
-# CVE-2022-40897
-setuptools==67.6.0
 ## The following requirements were added by pip freeze:
 anyio==3.6.2
 async-timeout==4.0.2
@@ -27,6 +23,9 @@ charset-normalizer==3.0.1
 click==8.1.3
 click-option-group==0.5.5
 colorama==0.4.6
+cryptography==39.0.2
+cyclonedx-bom==3.11.0
+cyclonedx-python-lib==3.1.5
 defusedxml==0.7.1
 face==22.0.0
 glom==22.1.0
@@ -43,9 +42,11 @@ msal==1.21.0
 msal-extensions==1.0.0
 mypy-extensions==1.0.0
 opencensus-context==0.1.3
+packageurl-python==0.10.4
 packaging==23.0
 pathspec==0.11.0
 peewee==3.16.0
+pip-requirements-parser==32.0.1
 platformdirs==3.1.0
 portalocker==2.7.0
 protobuf==4.22.0
@@ -56,6 +57,7 @@ pycparser==2.21
 pydantic==1.10.5
 Pygments==2.14.0
 PyJWT==2.6.0
+pyparsing==3.0.9
 pyrsistent==0.19.3
 python-lsp-jsonrpc==1.0.0
 PyYAML==6.0
@@ -66,7 +68,9 @@ ruamel.yaml==0.17.21
 semgrep==1.12.0
 six==1.16.0
 sniffio==1.3.0
+sortedcontainers==2.4.0
 starlette==0.22.0
+toml==0.10.2
 tomli==2.0.1
 tqdm==4.64.1
 typing_extensions==4.5.0

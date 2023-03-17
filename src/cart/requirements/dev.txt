@@ -1,2 +1,3 @@
 black==22.12.0
 semgrep==1.12.0
+cyclonedx-bom==3.11.0

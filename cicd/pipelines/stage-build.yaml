@@ -14,10 +14,6 @@ stages:
               make --directory ./src/cart install
             displayName: Install deps
 
-          - bash: |
-              make --directory ./src/cart test-ci
-            displayName: Test
-
           - task: DockerInstaller@0
             displayName: Setup Docker
             inputs:
@@ -28,7 +24,19 @@ stages:
             displayName: Build
 
           - task: AzureCLI@2
-            displayName: Publish build
+            displayName: Test builds
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                make --directory ./src/cart test-ci
+
+          - task: AzureCLI@2
+            displayName: Publish builds
             env:
               # Connect to Azure DevOps Artifacts
               AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
@@ -46,7 +54,7 @@ stages:
                 docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
 
                 # Exec our build
-                make --directory ./src/cart server=$LOGIN_SERVER publish
+                make --directory ./src/cart server=$LOGIN_SERVER publish-builds
 
           # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
           # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure

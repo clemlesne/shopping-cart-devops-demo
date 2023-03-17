@@ -19,6 +19,7 @@ stages:
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:
     - template: cicd/pipelines/stage-deploy.yaml
       parameters:
+        dependencytrack_secret: $(dependencytrack_secret)
         depends: build
         env: dev
         instance: ${{ variables.branch_sanitized }}
@@ -33,6 +34,7 @@ stages:
   - ${{ if eq(variables.branch_raw, 'master') }}:
       - template: cicd/pipelines/stage-deploy.yaml
         parameters:
+          dependencytrack_secret: $(dependencytrack_secret)
           depends: build
           env: preprod
           instance: ${{ variables.branch_sanitized }}
@@ -40,6 +42,7 @@ stages:
 
       - template: cicd/pipelines/stage-deploy.yaml
         parameters:
+          dependencytrack_secret: $(dependencytrack_secret)
           depends: deploy_preprod_${{ replace(variables.branch_sanitized, '-', '_') }}
           env: prod
           instance: ${{ variables.branch_sanitized }}

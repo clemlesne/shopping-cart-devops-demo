@@ -1,4 +1,5 @@
 parameters:
+  - name: dependencytrack_secret
   - name: depends
   - name: env
   - name: instance
@@ -18,6 +19,18 @@ stages:
             displayName: Checkout sources
             fetchDepth: 0
             fetchTags: true
+
+          - task: AzureCLI@2
+            displayName: Publish tests
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                make --directory ./src/cart dependencytrack_secret=${{ parameters.dependencytrack_secret }} env=${{ parameters.env }} instance=${{ parameters.instance }} publish-tests
 
           # Do not trust the build steps: always re-test the binaries security
           # - template: step-cart-container-cve.yaml
