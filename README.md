@@ -1,6 +1,6 @@
 # Shopping Cart DevOps Demo
 
-[![Build Status](https://dev.azure.com/shopping-cart-devops-demo/shopping-cart-devops-demo/_apis/build/status/clemlesne.shopping-cart-devops-demo?branchName=master)](https://dev.azure.com/shopping-cart-devops-demo/shopping-cart-devops-demo/_build/latest?definitionId=1&branchName=master)
+[!["develop" build status](https://dev.azure.com/shopping-cart-devops-demo/shopping-cart-devops-demo/_apis/build/status/clemlesne.shopping-cart-devops-demo?branchName=develop)](https://dev.azure.com/shopping-cart-devops-demo/shopping-cart-devops-demo/_build/latest?definitionId=1&branchName=develop)
 
 Something (simple) you can demonstrate to showcase the Microsoft Azure DevSecOps ecosystem.
 

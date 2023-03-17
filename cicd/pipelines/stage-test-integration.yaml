@@ -65,8 +65,8 @@ stages:
                 -v ${AGENT_BUILD_DIRECTORY}:/zap/wrk/:rw \
                 -t owasp/zap2docker-stable:2.12.0 \
                   zap-full-scan.py \
-                    -t https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart-${{ parameters.instance }} \
-                    -z "-openapiurl https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart-${{ parameters.instance }}/openapi.json" \
+                    -t https://shopping-cart-devops-demo.lesne.pro/cart-${{ parameters.instance }} \
+                    -z "-openapiurl https://shopping-cart-devops-demo.lesne.pro/cart-${{ parameters.instance }}/openapi.json" \
                  2> /dev/null; (($? == 2)) && echo 'Done' >&2
             env:
               AGENT_BUILD_DIRECTORY: $(Agent.BuildDirectory)

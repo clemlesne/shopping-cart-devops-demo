@@ -8,6 +8,8 @@ metadata:
   labels:
     {{- include "this.labels" . | nindent 4 }}
 spec:
+  entryPoints:
+    - websecure
   routes:
     - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`/{{ include "this.fullname" . }}`)
       kind: Rule

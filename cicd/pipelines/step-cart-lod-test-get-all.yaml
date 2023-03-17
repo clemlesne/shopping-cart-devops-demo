@@ -13,7 +13,7 @@ steps:
       env: |
         [{
           "name": "HTTP_DOMAIN",
-          "value": "shopping-cart-devops-demo.westeurope.cloudapp.azure.com"
+          "value": "shopping-cart-devops-demo.lesne.pro"
         },
         {
           "name": "HTTP_ROOT_PATH",

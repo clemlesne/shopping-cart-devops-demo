@@ -1,6 +1,6 @@
 # Cart service
 
-After being deployed with Azure DevOps Pipelines, [the service is available here](https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart). [OpenAPI schema can be accessed here](https://shopping-cart-devops-demo.westeurope.cloudapp.azure.com/cart/openapi.json).
+After being deployed with Azure DevOps Pipelines, [the service is available here](https://shopping-cart-devops-demo.lesne.pro/cart-develop). [OpenAPI schema can be accessed here](https://shopping-cart-devops-demo.lesne.pro/cart/openapi.json).
 
 Includes:
 
