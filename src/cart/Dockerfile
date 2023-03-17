@@ -1,5 +1,5 @@
 # Build container (1/2)
-FROM docker.io/library/python:3.11-slim as build
+FROM docker.io/library/python:3.11-slim-bullseye as build
 
 RUN apt-get update \
   && apt-get install --yes gcc python3-dev \
@@ -12,7 +12,7 @@ COPY ./requirements/prod.txt .
 RUN python3 -m pip install --requirement prod.txt
 
 # Output container (2/2)
-FROM docker.io/library/python:3.11-slim
+FROM docker.io/library/python:3.11-slim-bullseye
 
 # Chaos Studio pre-requirements for CPU pressure test (https://learn.microsoft.com/en-us/azure/chaos-studio/chaos-studio-fault-library#cpu-pressure)
 RUN apt-get update \
