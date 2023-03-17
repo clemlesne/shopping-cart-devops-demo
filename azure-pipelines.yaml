@@ -1,10 +1,10 @@
 pool: Azure Pipelines
 
 trigger:
-  - master
   - develop
   - feat/*
   - hotfix/*
+  - master
 
 variables:
   - group: shopping-cart-devops-demo
