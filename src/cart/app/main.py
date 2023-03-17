@@ -109,6 +109,7 @@ async def health_liveness_get() -> None:
 @api.get("/health/readiness")
 async def health_readiness_get():
     # Test the cache with a transaction (insert, read, delete)
+    cache_check = Status.FAIL
     try:
         key = str(uuid4())
         value = "test"
@@ -119,9 +120,9 @@ async def health_readiness_get():
         cache_check = Status.OK
     except Exception as exc:
         logger.exception(exc)
-        cache_check = Status.FAIL
 
     # Test database with a transaction (insert, read, delete)
+    database_check = Status.FAIL
     try:
         key = str(uuid4())
         document = {"id": key, "test": "test"}
@@ -134,7 +135,6 @@ async def health_readiness_get():
             database_check = Status.OK
     except Exception as exc:
         logger.exception(exc)
-        database_check = Status.FAIL
 
     monitoring_logger_check = Status.FAIL if not azure_log_handler else Status.OK
     monitoring_logger_tracer = Status.FAIL if not api.tracer else Status.OK
