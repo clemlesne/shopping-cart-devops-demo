@@ -3,6 +3,7 @@ docker := docker
 env := dev
 instance := none
 project_name := shopping-cart-devops-demo
+azdo_url := https://dev.azure.com/shopping-cart-devops-demo
 dependencytrack_url := https://dependencytrack.shopping-cart-devops-demo.lesne.pro
 dependencytrack_secret := none
 tmp_path ?= $(realpath .)/tmp
@@ -52,10 +53,10 @@ test-ci:
 			--description "SBOM files" \
 			--feed $(project_name) \
 			--name $(component_name)-sbom \
-			--organization https://dev.azure.com/shopping-cart-devops-demo \
+			--organization $(azdo_url) \
 			--path $(sbom_dir) \
-			--version $(version_small) \
-		|| true
+			--version $(version_small) || \
+		true
 
 publish-tests:
 	@test -f $(sbom_dir) || \
@@ -63,7 +64,7 @@ publish-tests:
 		az artifacts universal download \
 			--feed $(project_name) \
 			--name $(component_name)-sbom \
-			--organization https://dev.azure.com/shopping-cart-devops-demo \
+			--organization $(azdo_url) \
 			--path $(sbom_dir) \
 			--version $(version_small)
 
@@ -127,7 +128,7 @@ publish-builds:
 			--description "Helm chart" \
 			--feed $(project_name) \
 			--name $(component_name)-helm \
-			--organization https://dev.azure.com/shopping-cart-devops-demo \
+			--organization $(azdo_url) \
 			--path $(helm_dest) \
 			--version $(version_small) || \
 		true
@@ -137,7 +138,7 @@ deploy:
 		az artifacts universal download \
 			--feed $(project_name) \
 			--name $(component_name)-helm \
-			--organization https://dev.azure.com/shopping-cart-devops-demo \
+			--organization $(azdo_url) \
 			--path $(tmp_path) \
 			--version $(version_small)
 
