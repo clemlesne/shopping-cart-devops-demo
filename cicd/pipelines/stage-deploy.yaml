@@ -1,12 +1,13 @@
 parameters:
-  depends: ''
-  env: ''
-  instance: ''
-  azure_token: ''
+  - name: dependencytrack_secret
+  - name: depends
+  - name: env
+  - name: instance
+  - name: teams_webhook
 
 stages:
-  - stage: deploy_${{ parameters.env }}_${{ parameters.instance }}
-    displayName: Deployment in ${{ parameters.env }} for ${{ parameters.instance }}
+  - stage: deploy_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
+    displayName: Deploy ${{ parameters.env }} for ${{ parameters.instance }}
     condition: succeeded()
     dependsOn: ${{ parameters.depends }}
     lockBehavior: sequential
@@ -19,12 +20,27 @@ stages:
             fetchDepth: 0
             fetchTags: true
 
+          - task: AzureCLI@2
+            displayName: Publish tests
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                make --directory ./src/cart dependencytrack_secret=${{ parameters.dependencytrack_secret }} env=${{ parameters.env }} instance=${{ parameters.instance }} publish-tests
+
+          # Do not trust the build steps: always re-test the binaries security
+          # - template: step-cart-container-cve.yaml
+
           - task: HelmInstaller@1
             displayName: Setup Helm
             inputs:
               helmVersionToInstall: 3.10.3
 
-          - script: |
+          - bash: |
               # Install
               cd "$(Agent.TempDirectory)"
               curl -Lo kubelogin.zip https://github.com/Azure/kubelogin/releases/download/v0.0.25/kubelogin-linux-amd64.zip
@@ -38,10 +54,10 @@ stages:
             displayName: Setup Kubelogin
 
           - task: AzureCLI@2
-            displayName: Deploy build
+            displayName: Deploy instance
             env:
               # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -53,23 +69,9 @@ stages:
 
                 # Exec our build
                 make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
-      - job: items
-        displayName: Items service
-        steps:
-          - checkout: self
-            displayName: Checkout sources
-            fetchDepth: 0
-            fetchTags: true
 
-          - task: AzureCLI@2
-            displayName: Deploy build
-            env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: ${{ variables.azure_token }}
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                # Exec our build
-                make --directory ./src/items env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+          - template: step-send-notification.yaml
+            parameters:
+              title: Instance "${{ parameters.instance }}" in "${{ parameters.env }}" is upgraded
+              description: $(Build.SourceVersionMessage)
+              teams_webhook: ${{ parameters.teams_webhook }}

@@ -1,20 +1,28 @@
 # Build container (1/2)
-FROM docker.io/library/python:3.11-slim as build
+FROM docker.io/library/python:3.11-slim-bullseye as build
 
 RUN apt-get update \
   && apt-get install --yes gcc python3-dev \
-  && pip install --upgrade pip setuptools wheel
+  && python3 -m pip install --upgrade pip setuptools wheel
 
 RUN python -m venv /venv
 ENV PATH=/venv/bin:$PATH
 
-COPY ./requirements .
-RUN pip install --requirement prod.txt
+COPY ./requirements/prod.txt .
+RUN python3 -m pip install --requirement prod.txt
 
 # Output container (2/2)
-FROM docker.io/library/python:3.11-slim
+FROM docker.io/library/python:3.11-slim-bullseye
 
-RUN useradd -m appuser && mkdir /app && chown -R appuser:appuser /app
+# Chaos Studio pre-requirements for CPU pressure test (https://learn.microsoft.com/en-us/azure/chaos-studio/chaos-studio-fault-library#cpu-pressure)
+RUN apt-get update \
+  && apt-get -y install unzip \
+  && apt-get -y install stress-ng
+
+RUN useradd -m appuser \
+  && mkdir /app \
+  && chown -R appuser:appuser /app
+
 USER appuser
 
 COPY --from=build /venv /venv

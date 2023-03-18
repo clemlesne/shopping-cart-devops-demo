@@ -1,40 +1,49 @@
+pool: Azure Pipelines
+
 trigger:
-  - master
   - develop
   - feat/*
   - hotfix/*
-
-pool: Azure Pipelines
+  - master
 
 variables:
-  azure_token: ${{ variables['System.AccessToken'] }}
-  branch_raw: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
-  branch_sanitized: ${{ replace(replace(variables.branch_raw, '/', '_'), '-', '_') }}
+  - group: shopping-cart-devops-demo
+  - name: branch_raw
+    value: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
+  - name: branch_sanitized
+    value: ${{ replace(replace(variables.branch_raw, '/', '-'), '_', '-') }}
 
 stages:
-  - template: cicd/pipelines/integration.yaml
-    parameters:
-      azure_token: ${{ variables.azure_token }}
+  - template: cicd/pipelines/stage-build.yaml
 
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:
-    - template: cicd/pipelines/deploy.yaml
+    - template: cicd/pipelines/stage-deploy.yaml
       parameters:
-        depends: integration
-        env : dev
+        dependencytrack_secret: $(dependencytrack_secret)
+        depends: build
+        env: dev
         instance: ${{ variables.branch_sanitized }}
-        azure_token: ${{ variables.azure_token }}
+        teams_webhook: $(teams_webhook)
+
+    - template: cicd/pipelines/stage-test-integration.yaml
+      parameters:
+        depends: deploy_dev_${{ replace(variables.branch_sanitized, '-', '_') }}
+        env: dev
+        instance: ${{ variables.branch_sanitized }}
 
   - ${{ if eq(variables.branch_raw, 'master') }}:
-      - template: cicd/pipelines/deploy.yaml
+      - template: cicd/pipelines/stage-deploy.yaml
         parameters:
-          depends: integration
-          env : preprod
+          dependencytrack_secret: $(dependencytrack_secret)
+          depends: build
+          env: preprod
           instance: ${{ variables.branch_sanitized }}
-          azure_token: ${{ variables.azure_token }}
+          teams_webhook: $(teams_webhook)
 
-      - template: cicd/pipelines/deploy.yaml
+      - template: cicd/pipelines/stage-deploy.yaml
         parameters:
-          depends: deploy_preprod_${{ variables.branch_sanitized }}
-          env : prod
+          dependencytrack_secret: $(dependencytrack_secret)
+          depends: deploy_preprod_${{ replace(variables.branch_sanitized, '-', '_') }}
+          env: prod
           instance: ${{ variables.branch_sanitized }}
-          azure_token: ${{ variables.azure_token }}
+          teams_webhook: $(teams_webhook)

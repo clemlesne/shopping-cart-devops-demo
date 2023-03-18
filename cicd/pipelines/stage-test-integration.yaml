@@ -1,0 +1,73 @@
+parameters:
+  - name: depends
+  - name: env
+  - name: instance
+
+stages:
+  - stage: test_integration_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
+    displayName: Test integration ${{ parameters.env }} for ${{ parameters.instance }}
+    condition: succeeded()
+    dependsOn: ${{ parameters.depends }}
+    lockBehavior: sequential
+    jobs:
+      - job: cart_load
+        displayName: Cart service - Load
+        steps:
+          - template: step-cart-lod-test-crud.yaml
+            parameters:
+              instance: ${{ parameters.instance }}
+
+          - template: step-cart-lod-test-get-all.yaml
+            parameters:
+              instance: ${{ parameters.instance }}
+
+      - job: cart_chaos
+        displayName: Cart service - Chaos + Load
+        dependsOn:
+          - cart_load
+        steps:
+          - task: AzureCLI@2
+            displayName: Run the chaos
+            env:
+              # Connect to Azure DevOps Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Get the details about the run
+                SUBSCRIPTION_ID=$(az account show --query id --output tsv)
+                RESOURCE_GROUP=shopping-cart-devops-demo
+                EXPERIMENT_NAME=shopping-cart-devops-demo-cart
+
+                # Run the experiment
+                az rest \
+                  --method post \
+                  --uri https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Chaos/experiments/$EXPERIMENT_NAME/start?api-version=2021-09-15-preview
+
+          - template: step-cart-lod-test-get-all.yaml
+            parameters:
+              instance: ${{ parameters.instance }}
+
+      - job: cart_dast
+        displayName: Cart service - DAST
+        steps:
+          - task: DockerInstaller@0
+            displayName: Setup Docker
+            inputs:
+              dockerVersion: 20.10.9
+
+          - bash: |
+              # Ignore exit code 2, which is returned when the scan finds WARN issues
+              # See: https://www.zaproxy.org/docs/docker/full-scan
+              docker run \
+                -v ${AGENT_BUILD_DIRECTORY}:/zap/wrk/:rw \
+                -t owasp/zap2docker-stable:2.12.0 \
+                  zap-full-scan.py \
+                    -t https://shopping-cart-devops-demo.lesne.pro/cart-${{ parameters.instance }} \
+                    -z "-openapiurl https://shopping-cart-devops-demo.lesne.pro/cart-${{ parameters.instance }}/openapi.json" \
+                 2> /dev/null; (($? == 2)) && echo 'Done' >&2
+            env:
+              AGENT_BUILD_DIRECTORY: $(Agent.BuildDirectory)
+            displayName: Run tests

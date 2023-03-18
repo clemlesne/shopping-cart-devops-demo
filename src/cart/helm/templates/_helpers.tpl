@@ -54,5 +54,5 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Selector labels
 */}}
 {{- define "this.selectorCalico" -}}
-app.kubernetes.io/name == '{{ include "this.name" . }}' &&  app.kubernetes.io/instance == '{{ .Release.Name }}'
+app.kubernetes.io/name == '{{ include "this.name" . }}' && app.kubernetes.io/instance == '{{ .Release.Name }}'
 {{- end }}

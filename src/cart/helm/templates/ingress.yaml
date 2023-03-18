@@ -8,25 +8,42 @@ metadata:
   labels:
     {{- include "this.labels" . | nindent 4 }}
 spec:
+  entryPoints:
+    - websecure
   routes:
-    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`{{ .Values.ingress.pathPrefix }}`)
+    - match: Host(`{{ .Values.ingress.host }}`) && PathPrefix(`/{{ include "this.fullname" . }}`)
       kind: Rule
       services:
         - name: {{ $fullName }}
           port: {{ $svcPort }}
       middlewares:
-        - name: {{ $fullName }}
+        - name: {{ $fullName }}-prefix
+        - name: {{ $fullName }}-security
   tls:
     {{- toYaml .Values.ingress.tls | nindent 4 }}
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-prefix
   labels:
     {{- include "this.labels" . | nindent 4 }}
 spec:
   stripPrefix:
     prefixes:
-      - {{ .Values.ingress.pathPrefix }}
+      - "/{{ include "this.fullname" . }}"
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $fullName }}-security
+  labels:
+    {{- include "this.labels" . | nindent 4 }}
+spec:
+  headers:
+    browserXssFilter: true
+    frameDeny: true
+    stsIncludeSubdomains: true
+    stsPreload: true
+    stsSeconds: 31536000
 {{- end }}

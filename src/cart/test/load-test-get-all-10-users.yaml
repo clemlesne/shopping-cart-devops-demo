@@ -1,0 +1,17 @@
+version: v0.1
+testId: getAll10users
+displayName: Get all (10 users)
+testPlan: load-test-get-all.jmx
+description: List all objects
+engineInstances: 1
+failureCriteria:
+  - p50(response_time_ms) > 500
+  - p95(response_time_ms) > 3000
+  - percentage(error) > 1
+env:
+  - name: SIMULTANEOUS_USERS
+    value: 10
+  - name: RAMP_UP_PERIOD
+    value: 120
+  - name: DURATION
+    value: 300

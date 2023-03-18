@@ -1,0 +1,23 @@
+# See: https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
+autoscaling:
+  enabled: true
+  maxReplicas: 10
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 60
+          type: Utilization
+      type: Resource
+    - resource:
+        name: memory
+        target:
+          averageUtilization: 60
+          type: Utilization
+      type: Resource
+tls:
+  options:
+    default:
+      minVersion: VersionTLS13
+persistence:
+  enabled: true

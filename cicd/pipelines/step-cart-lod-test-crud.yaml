@@ -1,0 +1,29 @@
+parameters:
+  - name: instance
+
+steps:
+  - task: AzureLoadTest@1
+    displayName: Load test CRUD
+    retryCountOnTaskFailure: 3 # Sometimes init fails with concurrent pipelines
+    inputs:
+      azureSubscription: azure-shopping-cart-devops-demo
+      loadTestConfigFile: src/cart/test/load-test-crud-10-users.yaml
+      loadTestResource: shopping-cart-devops-demo
+      resourceGroup: shopping-cart-devops-demo
+      env: |
+        [{
+          "name": "HTTP_DOMAIN",
+          "value": "shopping-cart-devops-demo.lesne.pro"
+        },
+        {
+          "name": "HTTP_ROOT_PATH",
+          "value": "/cart-${{ parameters.instance }}"
+        },
+        {
+          "name": "HTTP_PROTOCOL",
+          "value": "https"
+        },
+        {
+          "name": "HTTP_PORT",
+          "value": "443"
+        }]
