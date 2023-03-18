@@ -1,10 +1,15 @@
 pool: Azure Pipelines
 
 trigger:
-  - develop
-  - feat/*
-  - hotfix/*
-  - master
+  tags:
+    include:
+      - v*
+  branches:
+    include:
+      - develop
+      - feat/*
+      - hotfix/*
+      - master
 
 variables:
   - group: shopping-cart-devops-demo
