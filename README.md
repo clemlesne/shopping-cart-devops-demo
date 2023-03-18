@@ -6,17 +6,19 @@ Something (simple) you can demonstrate to showcase the Microsoft Azure DevSecOps
 
 Features:
 
-- [x] 0 trust (= no static credentials, only managed identities by Azure AD)
-- [x] Chaos engineering with [Azure Chaos Studio](https://azure.microsoft.com/en-us/products/chaos-studio/)
-- [x] DAST tests
 - [ ] Integration layer with [Azure API Management](https://azure.microsoft.com/en-us/products/api-management)
 - [ ] Integration tests
 - [ ] OpenID authentication with a Progressive Web App app
 - [ ] SAST tests with [GitHub Advanced Security](https://docs.azdevops.com/en/get-started/learning-about-azdevops/about-azdevops-advanced-security)
+- [ ] Unit tests
+- [x] 0 trust (= no static credentials, only managed identities by Azure AD)
+- [x] Chaos engineering with [Azure Chaos Studio](https://azure.microsoft.com/en-us/products/chaos-studio/)
+- [x] DAST tests
+- [x] DevOps integration with Microsoft 365 and Azure ecosystems
+- [x] SAST security tests with [Semgrep](https://github.com/returntocorp/semgrep)
+- [x] SBOM history & audit with [OWASP Dependency Track](https://github.com/DependencyTrack/dependency-track), [accessible at this adrress with user/password demo/demo](https://dependencytrack.shopping-cart-devops-demo.lesne.pro)
 - [x] Serverless architecture
 - [x] Stress tests with [Azure Load Testing](https://azure.microsoft.com/en-us/products/load-testing)
-- [ ] Unit tests
-- [x] DevOps integration with Microsoft 365 and Azure ecosystems
 
 ## General
 
