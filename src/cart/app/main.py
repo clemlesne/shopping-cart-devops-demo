@@ -58,6 +58,7 @@ try:
     @api.middleware("http")
     async def trace_context(req: Request, next) -> Response:
         return await utils.setup_trace_context(req, next)
+
 except Exception as exc:
     logger.exception(exc)
     api.tracer = None
@@ -66,7 +67,9 @@ except Exception as exc:
 try:
     az_credentials = DefaultAzureCredential()
     dbclient = (
-        CosmosClient(COSMOS_DB_URI, credential=az_credentials)
+        CosmosClient(
+            COSMOS_DB_URI, credential=az_credentials, consistency_level="Strong"
+        )
         .get_database_client(COSMOS_DB_CONTAINER)
         .get_container_client(COSMOS_DB_CONTAINER)
     )
@@ -192,7 +195,7 @@ async def cart_get_all(next: Optional[str] = None) -> CartPaginateModel:
         try:
             items.append(CartModel.parse_obj(raw))
         except ValidationError:
-            logger.debug("Corrupted item detected, ignoring it")
+            logger.debug("Corrupted item detected, ignoring it", exc_info=True)
 
     model = CartPaginateModel(
         items=items,
