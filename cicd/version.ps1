@@ -37,7 +37,7 @@ for ($i = 0; $i -lt $args.Length; $i++) {
 
 $cache_file = "$(Split-Path $MyInvocation.MyCommand.Definition)/../.version-cache-date"
 $version_config = Get-Content "$(Split-Path $MyInvocation.MyCommand.Definition)/../.version"
-$latest_tag_raw = git describe --tags --abbrev=0
+$latest_tag_raw = git describe --tags --abbrev=0 --match "v[0-9].[0-9].[0-9]"
 $latest_tag_xyz = $latest_tag_raw.TrimStart("v")
 $latest_tag_array = $latest_tag_xyz.Split(".")
 $latest_tag_x = [int] $latest_tag_array[0]

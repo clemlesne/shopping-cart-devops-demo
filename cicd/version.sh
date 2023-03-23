@@ -35,7 +35,7 @@ done
 
 cache_file=$(echo "$(dirname "${BASH_SOURCE[0]}")$(echo "/../.version-cache-date")")
 version_config=$(cd "$(dirname "${BASH_SOURCE[0]}")" ; cat ../.version)
-latest_tag_raw=$(git describe --tags --abbrev=0)
+latest_tag_raw=$(git describe --tags --abbrev=0 --match "v[0-9].[0-9].[0-9]")
 latest_tag_xyz=${latest_tag_raw:1}
 latest_tag_array=(${latest_tag_xyz//./ })
 latest_tag_x=${latest_tag_array[0]}
