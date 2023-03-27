@@ -1,8 +1,8 @@
 # OWASP ZAP
 zaproxy/
 
-# version.sh cache file
-.version-cache-date
+# See: https://github.com/clemlesne/gitops-version
+.version.cache
 
 # Created by https://www.toptal.com/developers/gitignore/api/osx,helm,linux,python,windows,visualstudio,visualstudiocode,venv,eclipse
 # Edit at https://www.toptal.com/developers/gitignore?templates=osx,helm,linux,python,windows,visualstudio,visualstudiocode,venv,eclipse

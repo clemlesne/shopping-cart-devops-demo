@@ -1,5 +1,5 @@
 version:
-	@bash ./cicd/version.sh -c
+	@bash ./cicd/version/version.sh -g . -c
 
 version-full:
-	@bash ./cicd/version.sh -c -m
+	@bash ./cicd/version/version.sh -g . -c -m
