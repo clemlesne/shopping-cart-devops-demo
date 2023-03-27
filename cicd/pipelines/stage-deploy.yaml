@@ -19,6 +19,7 @@ stages:
             displayName: Checkout sources
             fetchDepth: 0
             fetchTags: true
+            submodules: true
 
           - task: AzureCLI@2
             displayName: Publish tests

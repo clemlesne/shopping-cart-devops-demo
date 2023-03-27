@@ -9,6 +9,7 @@ stages:
             displayName: Checkout sources
             fetchDepth: 0
             fetchTags: true
+            submodules: true
 
           - bash: |
               make --directory ./src/cart install
