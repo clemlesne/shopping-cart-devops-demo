@@ -6,7 +6,7 @@ opencensus-ext-logging==0.1.1
 opencensus-ext-threading==0.1.2
 opencensus==0.11.1
 python-dotenv==0.21.1
-redis==4.4.2
+redis==4.5.3
 uvicorn==0.20.0
 ## The following requirements were added by pip freeze:
 anyio==3.6.2
