@@ -150,6 +150,12 @@ deploy:
 		$(component_name)-$(instance) \
 		$(helm_dest)
 
+rollback:
+	@helm rollback \
+		--namespace $(env) \
+		--timeout 10m \
+		$(component_name)-$(instance)
+
 destroy:
 	@helm uninstall \
 		--namespace $(env) \

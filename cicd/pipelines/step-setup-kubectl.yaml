@@ -1,0 +1,18 @@
+steps:
+  - bash: |
+      # Install
+      cd "$(Agent.TempDirectory)"
+      curl -Lo kubelogin.zip https://github.com/Azure/kubelogin/releases/download/v0.0.25/kubelogin-linux-amd64.zip
+      unzip kubelogin.zip -d ./kubelogin
+      sudo mkdir -p /usr/local/kubelogin/bin
+      sudo mv ./kubelogin/bin/linux_amd64/kubelogin /usr/local/kubelogin/bin/kubelogin
+      sudo ln -s /usr/local/kubelogin/bin/kubelogin /usr/local/bin
+
+      # Test the install
+      kubelogin --version
+    displayName: Setup Kubelogin
+
+  - task: HelmInstaller@1
+    displayName: Setup Helm
+    inputs:
+      helmVersionToInstall: 3.11.2

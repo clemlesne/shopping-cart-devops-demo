@@ -1,5 +1,7 @@
+# Use the shared agent pool
 pool: Azure Pipelines
 
+# Trigger run on any version tag and on "develop", "feat/*", "hotfix/*" and "master" branches
 trigger:
   tags:
     include:
@@ -10,6 +12,16 @@ trigger:
       - feat/*
       - hotfix/*
       - master
+
+# Schedule run on "master" and "develop" every monday at 00:00
+schedules:
+  - cron: "0 0 * * 1"
+    displayName: Weekly build
+    always: true
+    branches:
+      include:
+        - develop
+        - master
 
 variables:
   - group: shopping-cart-devops-demo
@@ -22,33 +34,24 @@ stages:
   - template: cicd/pipelines/stage-build.yaml
 
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:
-    - template: cicd/pipelines/stage-deploy.yaml
+    - template: cicd/pipelines/stage-env.yaml
       parameters:
+        branch_sanitized: ${{ variables.branch_sanitized }}
         dependencytrack_secret: $(dependencytrack_secret)
-        depends: build
         env: dev
-        instance: ${{ variables.branch_sanitized }}
         teams_webhook: $(teams_webhook)
 
-    - template: cicd/pipelines/stage-test-integration.yaml
-      parameters:
-        depends: deploy_dev_${{ replace(variables.branch_sanitized, '-', '_') }}
-        env: dev
-        instance: ${{ variables.branch_sanitized }}
-
   - ${{ if eq(variables.branch_raw, 'master') }}:
-      - template: cicd/pipelines/stage-deploy.yaml
-        parameters:
-          dependencytrack_secret: $(dependencytrack_secret)
-          depends: build
-          env: preprod
-          instance: ${{ variables.branch_sanitized }}
-          teams_webhook: $(teams_webhook)
+    - template: cicd/pipelines/stage-env.yaml
+      parameters:
+        branch_sanitized: ${{ variables.branch_sanitized }}
+        dependencytrack_secret: $(dependencytrack_secret)
+        env: preprod
+        teams_webhook: $(teams_webhook)
 
-      - template: cicd/pipelines/stage-deploy.yaml
-        parameters:
-          dependencytrack_secret: $(dependencytrack_secret)
-          depends: deploy_preprod_${{ replace(variables.branch_sanitized, '-', '_') }}
-          env: prod
-          instance: ${{ variables.branch_sanitized }}
-          teams_webhook: $(teams_webhook)
+    - template: cicd/pipelines/stage-env.yaml
+      parameters:
+        branch_sanitized: ${{ variables.branch_sanitized }}
+        dependencytrack_secret: $(dependencytrack_secret)
+        env: prod
+        teams_webhook: $(teams_webhook)

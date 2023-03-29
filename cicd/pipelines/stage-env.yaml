@@ -1,0 +1,27 @@
+parameters:
+  - name: branch_sanitized
+  - name: dependencytrack_secret
+  - name: env
+  - name: teams_webhook
+
+stages:
+  - template: stage-deploy.yaml
+    parameters:
+      dependencytrack_secret: ${{ parameters.dependencytrack_secret }}
+      depends: build
+      env: ${{ parameters.env }}
+      instance: ${{ parameters.branch_sanitized }}
+      teams_webhook: ${{ parameters.teams_webhook }}
+
+  - template: stage-test-integration.yaml
+    parameters:
+      depends: deploy_${{ parameters.env }}_${{ replace(parameters.branch_sanitized, '-', '_') }}
+      env: ${{ parameters.env }}
+      instance: ${{ parameters.branch_sanitized }}
+
+  - template: stage-rollback.yaml
+    parameters:
+      depends: test_integration_${{ parameters.env }}_${{ replace(parameters.branch_sanitized, '-', '_') }}
+      env: ${{ parameters.env }}
+      instance: ${{ parameters.branch_sanitized }}
+      teams_webhook: ${{ parameters.teams_webhook }}

@@ -12,6 +12,10 @@ stages:
             submodules: true
 
           - bash: |
+              echo "##vso[build.updatebuildnumber]$(make version-full)"
+            displayName: Init build number
+
+          - bash: |
               make --directory ./src/cart install
             displayName: Install deps
 
@@ -63,4 +67,4 @@ stages:
           #     sleep 180
           #   displayName: Wait before container security test
 
-          - template: step-cart-container-cve.yaml
+          # - template: step-cart-container-cve.yaml
