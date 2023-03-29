@@ -1,3 +1,6 @@
+parameters:
+  - name: branch_sanitized
+
 stages:
   - stage: build
     displayName: Build
@@ -24,27 +27,10 @@ stages:
             inputs:
               dockerVersion: 20.10.9
 
-          - bash: |
-              make --directory ./src/cart build
-            displayName: Build
-
           - task: AzureCLI@2
-            displayName: Test builds
+            displayName: Login to container repository
             env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                make --directory ./src/cart test-ci
-
-          - task: AzureCLI@2
-            displayName: Publish builds
-            env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -58,8 +44,33 @@ stages:
                 LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
                 docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
 
-                # Exec our build
-                make --directory ./src/cart server=$LOGIN_SERVER publish-builds
+                echo "##vso[task.setvariable variable=container_login_server;]${LOGIN_SERVER}"
+
+          - bash: |
+              make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) build
+            displayName: Build
+
+          - task: AzureCLI@2
+            displayName: Test builds
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) test-ci
+
+          - task: AzureCLI@2
+            displayName: Publish builds
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) publish-builds
 
           # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
           # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure
