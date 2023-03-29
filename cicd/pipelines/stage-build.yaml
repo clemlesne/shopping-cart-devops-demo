@@ -25,7 +25,7 @@ stages:
           - task: DockerInstaller@0
             displayName: Setup Docker
             inputs:
-              dockerVersion: 20.10.9
+              dockerVersion: 23.0.2
 
           - task: AzureCLI@2
             displayName: Login to container repository
