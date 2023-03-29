@@ -1,14 +1,13 @@
 parameters:
-  - name: dependencytrack_secret
   - name: depends
   - name: env
   - name: instance
   - name: teams_webhook
 
 stages:
-  - stage: deploy_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
-    displayName: Deploy ${{ parameters.env }} for ${{ parameters.instance }}
-    condition: succeeded()
+  - stage: rollback_${{ parameters.env }}_${{ replace(parameters.instance, '-', '_') }}
+    displayName: Rollback ${{ parameters.env }} for ${{ parameters.instance }}
+    condition: failed()
     dependsOn: ${{ parameters.depends }}
     lockBehavior: sequential
     jobs:
@@ -20,25 +19,6 @@ stages:
             fetchDepth: 0
             fetchTags: true
             submodules: true
-
-          - template: step-add-tag.yaml
-            parameters:
-              tag: instance-${{ parameters.instance }}
-
-          - task: AzureCLI@2
-            displayName: Publish tests
-            env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                make --directory ./src/cart dependencytrack_secret=${{ parameters.dependencytrack_secret }} env=${{ parameters.env }} instance=${{ parameters.instance }} publish-tests
-
-          # Do not trust the build steps: always re-test the binaries security
-          # - template: step-cart-container-cve.yaml
 
           - template: step-setup-kubectl.yaml
 
@@ -57,14 +37,14 @@ stages:
                 kubelogin convert-kubeconfig -l azurecli
 
                 # Exec our build
-                make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+                make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} rollback
 
           - template: step-send-notification.yaml
             parameters:
-              title: Instance "${{ parameters.instance }}" in "${{ parameters.env }}" is deployed
+              title: Instance "${{ parameters.instance }}" in "${{ parameters.env }}" is rollbacked
               description: $(Build.SourceVersionMessage)
               teams_webhook: ${{ parameters.teams_webhook }}
 
           - template: step-add-tag.yaml
             parameters:
-              tag: deploy-${{ parameters.env }}
+              tag: rollback-${{ parameters.env }}

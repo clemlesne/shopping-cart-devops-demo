@@ -1,0 +1,7 @@
+parameters:
+  - name: tag
+
+steps:
+  - bash: |
+      echo "##vso[build.addbuildtag]${{ parameters.tag }}"
+    displayName: Add "${{ parameters.tag }}" tag

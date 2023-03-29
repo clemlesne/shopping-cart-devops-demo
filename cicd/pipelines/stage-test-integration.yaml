@@ -8,16 +8,15 @@ stages:
     displayName: Test integration ${{ parameters.env }} for ${{ parameters.instance }}
     condition: succeeded()
     dependsOn: ${{ parameters.depends }}
-    lockBehavior: sequential
     jobs:
       - job: cart_load
         displayName: Cart service - Load
         steps:
-          - template: step-cart-lod-test-crud.yaml
+          - template: step-cart-load-test-crud.yaml
             parameters:
               instance: ${{ parameters.instance }}
 
-          - template: step-cart-lod-test-get-all.yaml
+          - template: step-cart-load-test-get-all.yaml
             parameters:
               instance: ${{ parameters.instance }}
 
@@ -46,7 +45,7 @@ stages:
                   --method post \
                   --uri https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP/providers/Microsoft.Chaos/experiments/$EXPERIMENT_NAME/start?api-version=2021-09-15-preview
 
-          - template: step-cart-lod-test-get-all.yaml
+          - template: step-cart-load-test-get-all.yaml
             parameters:
               instance: ${{ parameters.instance }}
 
