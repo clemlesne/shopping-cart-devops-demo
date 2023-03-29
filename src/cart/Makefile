@@ -6,10 +6,12 @@ project_name := shopping-cart-devops-demo
 azdo_url := https://dev.azure.com/shopping-cart-devops-demo
 dependencytrack_url := https://dependencytrack.shopping-cart-devops-demo.lesne.pro
 dependencytrack_secret := none
+git_branch := $(shell git rev-parse --abbrev-ref HEAD | tr / -)
 tmp_path ?= $(realpath .)/tmp
 version_small ?= $(shell $(MAKE) --directory ../../ --silent version)
 version_full ?= $(shell $(MAKE) --directory ../../ --silent version-full)
-container_name := $(project_name)/$(component_name):$(version_small)
+container_repo := localhost
+container_name := $(container_repo)/$(project_name)/$(component_name)
 helm_dest ?= $(tmp_path)/$(component_name)-$(version_small).tgz
 sbom_dir := $(tmp_path)/sbom/
 
@@ -46,7 +48,8 @@ test-ci:
 		--purl-bom-ref \
 		--output $(sbom_dir)/app.json
 
-	@$(tmp_path)/syft $(container_name) \
+	@$(tmp_path)/syft packages \
+		$(container_name):$(git_branch) \
 		--output cyclonedx-json=$(sbom_dir)/container.json
 
 	@az artifacts universal publish \
@@ -89,10 +92,20 @@ publish-tests:
 			--insecure
 
 build:
+	@$(docker) pull \
+			$(container_name):$(git_branch) \
+			$(container_name):$(version_small) || \
+		true
+
 	@$(docker) build \
 		--build-arg APP_VERSION=$(version_full) \
-		--tag $(container_name) \
+		--tag $(container_name):$(git_branch) \
+		--cache-from $(container_name) \
 		.
+
+	@$(docker) tag \
+		$(container_name):$(git_branch) \
+		$(container_name):$(version_small)
 
 	@helm package ./helm \
 		--app-version $(version_small) \
@@ -105,7 +118,7 @@ start:
 		--replace \
 		-d \
 		-p 8081:8080 \
-		$(container_name)
+		$(container_name):$(git_branch)
 
 	echo "See http://localhost:8081"
 
@@ -118,11 +131,8 @@ stop:
 	@$(docker) stop $(project_name)-$(component_name)
 
 publish-builds:
-	@$(docker) tag \
-		$(container_name) \
-		$(server)/$(component_name):$(version_small)
-
-	@$(docker) push $(server)/$(component_name):$(version_small)
+	@$(docker) push $(container_name):$(git_branch)
+	@$(docker) push $(container_name):$(version_small)
 
 	@az artifacts universal publish \
 			--description "Helm chart" \
@@ -163,9 +173,9 @@ destroy:
 		$(project_name)-$(component_name)-$(instance)
 
 test-remote:
-	@$(docker) pull $(server)/cart:$(version_small)
+	@$(docker) pull $(container_name):$(version_small)
 
-	$(eval image_sha = $(shell $(docker) image inspect $(server)/cart:$(version_small) | jq -r '[.[].RepoDigests[] | select(. | startswith("$(server)")) | match("^.*(sha256.*)$$").captures[0].string] | "(\"" + join("\", \"") + "\")"'))
+	$(eval image_sha = $(shell $(docker) image inspect $(container_name):$(version_small) | jq -r '[.[].RepoDigests[] | select(. | startswith("$(container_repo)")) | match("^.*(sha256.*)$$").captures[0].string] | "(\"" + join("\", \"") + "\")"'))
 
 	@echo "Testing container $(image_sha)"
 

@@ -28,8 +28,7 @@ stages:
           - task: AzureCLI@2
             displayName: Run the chaos
             env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash

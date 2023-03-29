@@ -5,7 +5,7 @@ After being deployed with Azure DevOps Pipelines, [the service is available here
 Includes:
 
 - [x] Authenticates to Azure services [with Azure AD Pod Identity](https://learn.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity)
-- [x] Automated build & deploy with Azure DevOps Pipelines and Azure DevOps Artifacts
+- [x] Automated build & deploy with Azure DevOps Pipelines and Azure Artifacts
 - [x] Azure Application Insights with [opencensus-python](https://github.com/census-instrumentation/opencensus-python)
 
 ## Dev
@@ -52,7 +52,7 @@ docker login $LOGIN_SERVER \
     -u 00000000-0000-0000-0000-000000000000
 ```
 
-This will includes both the container and the Helm chart. Publish the current build, `make server=$LOGIN_SERVER publish`.
+This will includes both the container and the Helm chart. Publish the current build, `make container_repo=$LOGIN_SERVER publish`.
 
 ## Deploy
 

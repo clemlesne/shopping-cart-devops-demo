@@ -32,6 +32,8 @@ variables:
 
 stages:
   - template: cicd/pipelines/stage-build.yaml
+    parameters:
+      branch_sanitized: ${{ variables.branch_sanitized }}
 
   - ${{ if or(contains(variables.branch_raw, 'develop'), contains(variables.branch_raw, 'feat/'), contains(variables.branch_raw, 'hotfix/')) }}:
     - template: cicd/pipelines/stage-env.yaml

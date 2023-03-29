@@ -23,10 +23,9 @@ stages:
           - template: step-setup-kubectl.yaml
 
           - task: AzureCLI@2
-            displayName: Deploy instance
+            displayName: Rollback instance
             env:
-              # Connect to Azure DevOps Artifacts
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash

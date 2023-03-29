@@ -15,4 +15,4 @@ steps:
         docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
 
         # Exec out test
-        make --directory ./src/cart server=$LOGIN_SERVER test-remote
+        make --directory ./src/cart container_repo=$LOGIN_SERVER test-remote
