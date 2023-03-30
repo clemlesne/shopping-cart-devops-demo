@@ -1,5 +1,3 @@
-replicaCount: 2
-
 image:
   repository: shoppingcartdevopsdemo.azurecr.io/shopping-cart-devops-demo/cart
   pullPolicy: IfNotPresent
