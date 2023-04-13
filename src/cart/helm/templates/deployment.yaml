@@ -92,3 +92,7 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: {{ include "this.fullname" . }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
