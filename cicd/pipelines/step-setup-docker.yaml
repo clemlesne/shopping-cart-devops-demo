@@ -1,0 +1,13 @@
+steps:
+  - bash: |
+      # Start buildkitd
+      rootlesskit buildkitd --oci-worker-no-process-sandbox --addr $BUILDKIT_HOST &
+
+      # Wait for buildkitd to start
+      while ! buildctl debug workers; do sleep 1; done
+    displayName: Run BuildKit
+
+  - task: DockerInstaller@0
+    displayName: Setup Docker
+    inputs:
+      dockerVersion: 23.0.3

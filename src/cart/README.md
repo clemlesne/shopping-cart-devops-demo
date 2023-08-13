@@ -22,7 +22,7 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=$(az monitor app-insights component show \
     | jq -r ".connectionString")
 ```
 
-Start the local app, `make dev`. Test your code, `make test-local`. By default, port is 8081. See OpenAPI doc at [127.0.0.1:8081/redoc](http://127.0.0.1:8081/redoc).
+Start the local app, `make dev`. Test your code, `make test`. By default, port is 8081. See OpenAPI doc at [127.0.0.1:8081/redoc](http://127.0.0.1:8081/redoc).
 
 Note, OpenAPI documentation can be accessed here:
 

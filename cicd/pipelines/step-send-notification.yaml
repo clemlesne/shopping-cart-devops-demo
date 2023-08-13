@@ -71,7 +71,7 @@ steps:
       template=$(string_replace "$template" "%github_url%" "${{ parameters.github_url }}")
       template=$(string_replace "$template" "%pipeline_url%" "${{ parameters.pipeline_url }}")
       template=$(string_replace "$template" "%title%" "${{ parameters.title }}")
-      template=$(string_replace "$template" "%version%" "$(make version-full)")
+      template=$(string_replace "$template" "%version%" "$(version_full)")
 
       curl -X POST \
         --retry 5 \

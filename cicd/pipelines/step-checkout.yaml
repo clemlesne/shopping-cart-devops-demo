@@ -1,0 +1,11 @@
+steps:
+  - checkout: self
+    displayName: Checkout sources
+    fetchDepth: 0
+    fetchTags: true
+    submodules: true
+
+  - bash: |
+      echo "##vso[task.setvariable variable=version]$(make version)"
+      echo "##vso[task.setvariable variable=version_full]$(make version-full)"
+    displayName: Define version

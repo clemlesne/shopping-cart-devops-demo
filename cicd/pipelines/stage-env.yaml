@@ -8,7 +8,7 @@ stages:
   - template: stage-deploy.yaml
     parameters:
       dependencytrack_secret: ${{ parameters.dependencytrack_secret }}
-      depends: build
+      depends: cart_build
       env: ${{ parameters.env }}
       instance: ${{ parameters.branch_sanitized }}
       teams_webhook: ${{ parameters.teams_webhook }}

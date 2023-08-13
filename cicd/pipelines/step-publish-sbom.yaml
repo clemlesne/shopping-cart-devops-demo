@@ -1,0 +1,29 @@
+parameters:
+  - name: dependencytrack_secret
+  - name: env
+  - name: instance
+  - name: package
+
+steps:
+  - bash: |
+      az config set extension.use_dynamic_install=yes_without_prompt
+
+      az artifacts universal download \
+        --feed shopping-cart-devops-demo \
+        --name ${{ parameters.package }} \
+        --organization https://dev.azure.com/$(System.TeamProject) \
+        --path $(Build.ArtifactStagingDirectory) \
+        --version $(version)
+
+      curl --silent -X "POST" "https://dependencytrack.shopping-cart-devops-demo.lesne.pro/api/v1/bom" \
+        -F "autoCreate=true" \
+        -F "bom=@$(Build.ArtifactStagingDirectory)/${{ parameters.package }}.json" \
+        -F "projectName=shopping-cart-devops-demo-cart" \
+        -F "projectVersion=${{ parameters.env }}-${{ parameters.instance }}" \
+        -H "Accept: application/json" \
+        -H "Content-Type: multipart/form-data" \
+        -H "X-API-Key: ${{ parameters.dependencytrack_secret }}" \
+        --insecure
+    displayName: Publish ${{ parameters.package }} SBOM
+    env:
+      AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)

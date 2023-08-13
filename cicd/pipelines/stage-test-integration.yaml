@@ -27,8 +27,6 @@ stages:
         steps:
           - task: AzureCLI@2
             displayName: Run the chaos
-            env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -50,11 +48,14 @@ stages:
 
       - job: cart_dast
         displayName: Cart service - DAST
+        # Use a machine supporting the nested virtualization
+        pool:
+          name: onprem_aks
+          demands:
+            - flavor_bookworm
+            - nested_virtualization
         steps:
-          - task: DockerInstaller@0
-            displayName: Setup Docker
-            inputs:
-              dockerVersion: 20.10.9
+          - template: step-setup-docker.yaml
 
           - bash: |
               # Ignore exit code 2, which is returned when the scan finds WARN issues

@@ -1,5 +1,9 @@
-# Use the shared agent pool
-pool: Azure Pipelines
+# Use ARM64 Linux agents because they are cheap
+pool:
+  name: onprem_aks
+  demands:
+    - flavor_bookworm
+    - arch_arm64
 
 # Trigger run on any version tag and on "develop", "feat/*", "hotfix/*" and "master" branches
 trigger:
@@ -15,7 +19,7 @@ trigger:
 
 # Schedule run on "master" and "develop" every monday at 00:00
 schedules:
-  - cron: "0 0 * * 1"
+  - cron: 0 0 * * 1
     displayName: Weekly build
     always: true
     branches:
@@ -29,8 +33,12 @@ variables:
     value: ${{ replace(variables['Build.SourceBranch'], 'refs/heads/', '') }}
   - name: branch_sanitized
     value: ${{ replace(replace(variables.branch_raw, '/', '-'), '_', '-') }}
+  - name: PIP_CACHE_DIR
+    value: $(Pipeline.Workspace)/.pip
 
 stages:
+  - template: cicd/pipelines/stage-init.yaml
+
   - template: cicd/pipelines/stage-build.yaml
     parameters:
       branch_sanitized: ${{ variables.branch_sanitized }}

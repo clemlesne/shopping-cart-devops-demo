@@ -14,29 +14,20 @@ stages:
       - job: cart
         displayName: Cart service
         steps:
-          - checkout: self
-            displayName: Checkout sources
-            fetchDepth: 0
-            fetchTags: true
-            submodules: true
+          - template: step-checkout.yaml
 
           - template: step-setup-kubectl.yaml
 
-          - task: AzureCLI@2
-            displayName: Rollback instance
-            env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
+          - task: HelmDeploy@0
+            displayName: Helm rollback
             inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                # Connect to Azure Kubernetes Service
-                az aks get-credentials --resource-group shopping-cart-devops-demo --name shoppingcartdevopsdemo
-                kubelogin convert-kubeconfig -l azurecli
-
-                # Exec our build
-                make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} rollback
+              azureResourceGroup: shopping-cart-devops-demo
+              azureSubscriptionEndpoint: azure-shopping-cart-devops-demo
+              command: rollback
+              kubernetesCluster: shoppingcartdevopsdemo
+              namespace: ${{ parameters.env }}
+              releaseName: ${{ parameters.instance }}
+              waitForExecution: true
 
           - template: step-send-notification.yaml
             parameters:

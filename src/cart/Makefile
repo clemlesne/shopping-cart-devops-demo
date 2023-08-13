@@ -16,10 +16,9 @@ helm_dest ?= $(tmp_path)/$(component_name)-$(version_small).tgz
 sbom_dir := $(tmp_path)/sbom/
 
 install:
-	@python3 -m pip install --requirement ./requirements/default.txt
-	@python3 -m pip install --requirement ./requirements/dev.txt
-	@python3 -m pip freeze --local --requirement ./requirements/default.txt > ./requirements/prod.txt
-	@curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b $(tmp_path) v0.75.0
+	@python3 -m pip install --requirement requirements/default.txt
+	@python3 -m pip install --requirement requirements/dev.txt
+	@curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | bash -s -- -b $(tmp_path) v0.75.0
 
 dev:
 	@APP_VERSION=$(version_full) uvicorn app.main:api \
@@ -29,74 +28,12 @@ dev:
 		--timeout-keep-alive 30 \
 		--no-server-header
 
-test-local:
-	@black ./app
-	@helm lint --strict ./helm
+test:
+	@black app
+	@helm lint --strict helm
 	@semgrep ci --use-git-ignore --autofix --config auto
 
-test-ci:
-	@black --diff ./app
-	@helm lint --strict ./helm
-	@semgrep ci --use-git-ignore --no-autofix --config auto
-
-	@mkdir -p $(sbom_dir)
-
-	@python3 -m cyclonedx_py \
-		--environment \
-		--force \
-		--format json \
-		--purl-bom-ref \
-		--output $(sbom_dir)/app.json
-
-	@$(tmp_path)/syft packages \
-		$(container_name):$(git_branch) \
-		--output cyclonedx-json=$(sbom_dir)/container.json
-
-	@az artifacts universal publish \
-			--description "SBOM files" \
-			--feed $(project_name) \
-			--name $(component_name)-sbom \
-			--organization $(azdo_url) \
-			--path $(sbom_dir) \
-			--version $(version_small) || \
-		true
-
-publish-tests:
-	@test -f $(sbom_dir) || \
-		mkdir -p $(sbom_dir) && \
-		az artifacts universal download \
-			--feed $(project_name) \
-			--name $(component_name)-sbom \
-			--organization $(azdo_url) \
-			--path $(sbom_dir) \
-			--version $(version_small)
-
-	@curl --silent -X "POST" "$(dependencytrack_url)/api/v1/bom" \
-			-H "Accept: application/json" \
-			-H "Content-Type: multipart/form-data" \
-			-H "X-API-Key: $(dependencytrack_secret)" \
-			-F "autoCreate=true" \
-			-F "bom=@$(sbom_dir)/app.json" \
-			-F "projectName=$(project_name)-$(component_name)" \
-			-F "projectVersion=$(env)-$(instance)" \
-			--insecure
-
-	@curl --silent -X "POST" "$(dependencytrack_url)/api/v1/bom" \
-			-H "Accept: application/json" \
-			-H "Content-Type: multipart/form-data" \
-			-H "X-API-Key: $(dependencytrack_secret)" \
-			-F "autoCreate=true" \
-			-F "bom=@$(sbom_dir)/container.json" \
-			-F "projectName=$(project_name)-$(component_name)" \
-			-F "projectVersion=$(env)-$(instance)" \
-			--insecure
-
 build:
-	@$(docker) pull \
-			$(container_name):$(git_branch) \
-			$(container_name):$(version_small) || \
-		true
-
 	@$(docker) build \
 		--build-arg APP_VERSION=$(version_full) \
 		--tag $(container_name):$(git_branch) \
@@ -106,11 +43,6 @@ build:
 	@$(docker) tag \
 		$(container_name):$(git_branch) \
 		$(container_name):$(version_small)
-
-	@helm package ./helm \
-		--app-version $(version_small) \
-		--destination $(dir $(helm_dest)) \
-		--version $(version_small)
 
 start:
 	@$(docker) run \
@@ -130,47 +62,14 @@ logs:
 stop:
 	@$(docker) stop $(project_name)-$(component_name)
 
-publish-builds:
-	@$(docker) push $(container_name):$(git_branch)
-	@$(docker) push $(container_name):$(version_small)
-
-	@az artifacts universal publish \
-			--description "Helm chart" \
-			--feed $(project_name) \
-			--name $(component_name)-helm \
-			--organization $(azdo_url) \
-			--path $(helm_dest) \
-			--version $(version_small) || \
-		true
-
 deploy:
-	@test -f $(helm_dest) || \
-		az artifacts universal download \
-			--feed $(project_name) \
-			--name $(component_name)-helm \
-			--organization $(azdo_url) \
-			--path $(tmp_path) \
-			--version $(version_small)
-
 	@helm upgrade \
 		--atomic \
 		--install \
 		--namespace $(env) \
 		--timeout 10m \
 		$(component_name)-$(instance) \
-		$(helm_dest)
-
-rollback:
-	@helm rollback \
-		--namespace $(env) \
-		--timeout 10m \
-		$(component_name)-$(instance)
-
-destroy:
-	@helm uninstall \
-		--namespace $(env) \
-		--timeout 10m \
-		$(project_name)-$(component_name)-$(instance)
+		helm
 
 test-remote:
 	@$(docker) pull $(container_name):$(version_small)

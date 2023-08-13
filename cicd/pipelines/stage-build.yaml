@@ -2,30 +2,129 @@ parameters:
   - name: branch_sanitized
 
 stages:
-  - stage: build
-    displayName: Build
+  - stage: cart_build
+    displayName: Cart build
+    dependsOn: init
     jobs:
-      - job: cart
-        displayName: Cart service
+      - job: test
+        displayName: Static tests
+        pool:
+          name: onprem_aks
+          demands:
+            # Use Debian agent because we are using specific system commands (apt-get)
+            - flavor_bookworm
+            # Use X64 Linux agent because Semgrep is not available on ARM64 (https://github.com/returntocorp/semgrep/issues/2252)
+            - arch_x64
         steps:
-          - checkout: self
-            displayName: Checkout sources
-            fetchDepth: 0
-            fetchTags: true
-            submodules: true
+          - template: step-checkout.yaml
 
           - bash: |
-              echo "##vso[build.updatebuildnumber]$(make version-full)"
-            displayName: Init build number
+              apt-get update -q
+              apt-get install -y -q --no-install-recommends \
+                python3.10 python3-pip
+            displayName: Setup Python 3.10
 
-          - bash: |
-              make --directory ./src/cart install
-            displayName: Install deps
-
-          - task: DockerInstaller@0
-            displayName: Setup Docker
+          - task: Cache@2
             inputs:
-              dockerVersion: 23.0.2
+              key: python | "$(Agent.OS)" | src/cart/requirements/default.txt | src/cart/requirements/dev.txt
+              restoreKeys: python | "$(Agent.OS)"
+              path: $(PIP_CACHE_DIR)
+            displayName: Python cache
+
+          - bash: |
+              python3 -m pip install --break-system-packages --requirement src/cart/requirements/default.txt
+              python3 -m pip install --break-system-packages --requirement src/cart/requirements/dev.txt
+            displayName: Install Python deps
+
+          - bash: |
+              black --diff src/cart/app
+              semgrep ci --use-git-ignore --no-autofix --config auto --include src/cart
+            displayName: Test sources
+
+          - bash: |
+              python3 -m cyclonedx_py \
+                --force \
+                --format json \
+                --in-file src/cart/requirements/default.txt \
+                --output $(Build.ArtifactStagingDirectory)/cart-app-sbom.json \
+                --purl-bom-ref \
+                --requirements
+            displayName: Generate sources SBOM
+
+          - bash: |
+              az config set extension.use_dynamic_install=yes_without_prompt
+
+              # We cannot override a package inside Azure Artifacts, catch exception
+              az artifacts universal publish \
+                  --description "SBOM for cart service (sources)" \
+                  --feed shopping-cart-devops-demo \
+                  --name cart-app-sbom \
+                  --organization https://dev.azure.com/$(System.TeamProject) \
+                  --path $(Build.ArtifactStagingDirectory)/cart-app-sbom.json \
+                  --version $(version) \
+                || true
+            displayName: Sources SBOM archive
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+      - job: helm
+        displayName: Helm
+        pool:
+          name: onprem_aks
+          demands:
+            # Azure CLI DevOps extension is bugged on ARM64 (https://github.com/Azure/azure-devops-cli-extension/issues/1006)
+            - arch_x64
+        steps:
+          - template: step-checkout.yaml
+
+          - template: step-setup-kubectl.yaml
+
+          - bash: |
+              helm lint --strict src/cart/helm
+            displayName: Helm lint
+
+          - task: HelmDeploy@0
+            displayName: Helm package
+            inputs:
+              command: package
+              chartPath: src/cart/helm
+              destination: $(Build.ArtifactStagingDirectory)
+              arguments: --version $(version_full) --app-version $(version)
+
+          - task: AzureCLI@2
+            displayName: Helm publish
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+            inputs:
+              azureSubscription: azure-shopping-cart-devops-demo
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                az config set extension.use_dynamic_install=yes_without_prompt
+
+                # We cannot override a package inside Azure Artifacts, catch exception
+                az artifacts universal publish \
+                    --description "Helm chart for cart service" \
+                    --feed shopping-cart-devops-demo \
+                    --name cart-helm \
+                    --organization https://dev.azure.com/$(System.TeamProject) \
+                    --path $(Build.ArtifactStagingDirectory)/cart-$(version_full).tgz \
+                    --version $(version) \
+                  || true
+
+      - job: build
+        displayName: Build
+        pool:
+          name: onprem_aks
+          demands:
+            # Requires buildkit for containers build
+            - buildkit
+            # Azure CLI DevOps extension is bugged on ARM64 (https://github.com/Azure/azure-devops-cli-extension/issues/1006)
+            - arch_x64
+        steps:
+          - template: step-checkout.yaml
+
+          - template: step-setup-docker.yaml
 
           - task: AzureCLI@2
             displayName: Login to container repository
@@ -44,38 +143,53 @@ stages:
                 LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
                 docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
 
-                echo "##vso[task.setvariable variable=container_login_server;]${LOGIN_SERVER}"
+                echo "##vso[task.setvariable variable=container_registry_domain;]${LOGIN_SERVER}"
 
           - bash: |
-              make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) build
-            displayName: Build
+              buildctl build \
+                --export-cache type=inline \
+                --frontend dockerfile.v0 \
+                --import-cache type=registry,ref=$(container_registry_domain)/shopping-cart-devops-demo/cart:${{ parameters.branch_sanitized }} \
+                --local context=src/cart \
+                --local dockerfile=src/cart \
+                --opt attest:sbom=generator=docker/buildkit-syft-scanner \
+                --opt build-arg:APP_VERSION=$(version_full) \
+                --opt platform=linux/amd64,linux/arm64/v8 \
+                --output type=image,\"name=$(container_registry_domain)/shopping-cart-devops-demo/cart:$(version),$(container_registry_domain)/shopping-cart-devops-demo/cart:${{ parameters.branch_sanitized }}\",push=true
+            displayName: Build and push the image
 
-          - task: AzureCLI@2
-            displayName: Test builds
+          - bash: |
+              # Install
+              curl -sSfL https://raw.githubusercontent.com/anchore/syft/v${SYFT_VERSION}/install.sh \
+                | bash -s -- \
+                  -b /usr/local/bin \
+                  v${SYFT_VERSION}
+
+              # Test the install
+              syft --version
+            displayName: Setup Syft
             env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) test-ci
+              # https://github.com/anchore/syft/releases
+              SYFT_VERSION: 0.77.0
 
-          - task: AzureCLI@2
-            displayName: Publish builds
+          - bash: |
+              syft packages \
+                --output cyclonedx-json=$(Build.ArtifactStagingDirectory)/cart-container-sbom.json \
+                registry:$(container_registry_domain)/shopping-cart-devops-demo/cart:$(version)
+            displayName: Generate container SBOM
+
+          - bash: |
+              az config set extension.use_dynamic_install=yes_without_prompt
+
+              # We cannot override a package inside Azure Artifacts, catch exception
+              az artifacts universal publish \
+                  --description "SBOM for cart service (container)" \
+                  --feed shopping-cart-devops-demo \
+                  --name cart-container-sbom \
+                  --organization https://dev.azure.com/$(System.TeamProject) \
+                  --path $(Build.ArtifactStagingDirectory)/cart-container-sbom.json \
+                  --version $(version) \
+                || true
+            displayName: Container SBOM archive
             env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                make --directory ./src/cart git_branch=${{ parameters.branch_sanitized }} container_repo=$(container_login_server) publish-builds
-
-          # There are a 2-15 minutes delay before Defender for Containers for Azure Container Registry scan containers, so we are waiting 3 minutes. Note, 20/01/2023: Seems OK in most cases.
-          # See: https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-containers-vulnerability-assessment-azure
-          # - bash: |
-          #     sleep 180
-          #   displayName: Wait before container security test
-
-          # - template: step-cart-container-cve.yaml
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)

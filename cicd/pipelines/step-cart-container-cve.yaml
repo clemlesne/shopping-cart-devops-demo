@@ -6,13 +6,10 @@ steps:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        # Make sure CLI extensions can be used
-        az config set extension.use_dynamic_install=yes_without_prompt
-
         # Connect to Azure Container Registry
         DOCKER_TOKEN=$(az acr login --expose-token --name shoppingcartdevopsdemo)
         LOGIN_SERVER=$(echo $DOCKER_TOKEN | jq -r '.loginServer')
         docker login $LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $(echo $DOCKER_TOKEN | jq -r '.accessToken')
 
         # Exec out test
-        make --directory ./src/cart container_repo=$LOGIN_SERVER test-remote
+        make --directory src/cart container_repo=$LOGIN_SERVER test-remote

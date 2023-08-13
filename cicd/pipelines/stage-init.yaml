@@ -1,0 +1,12 @@
+stages:
+  - stage: init
+    displayName: Init
+    jobs:
+      - job: init
+        displayName: Init
+        steps:
+          - template: step-checkout.yaml
+
+          - bash: |
+              echo "##vso[build.updatebuildnumber]$(version_full)"
+            displayName: Init build number

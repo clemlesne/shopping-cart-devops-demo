@@ -14,37 +14,51 @@ stages:
     jobs:
       - job: cart
         displayName: Cart service
+        pool:
+          name: onprem_aks
+          demands:
+            # Azure CLI DevOps extension is bugged on ARM64 (https://github.com/Azure/azure-devops-cli-extension/issues/1006)
+            - arch_x64
         steps:
-          - checkout: self
-            displayName: Checkout sources
-            fetchDepth: 0
-            fetchTags: true
-            submodules: true
+          - template: step-checkout.yaml
 
           - template: step-add-tag.yaml
             parameters:
               tag: instance-${{ parameters.instance }}
 
-          - task: AzureCLI@2
-            displayName: Publish tests
-            env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
-            inputs:
-              azureSubscription: azure-shopping-cart-devops-demo
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                make --directory ./src/cart dependencytrack_secret=${{ parameters.dependencytrack_secret }} env=${{ parameters.env }} instance=${{ parameters.instance }} publish-tests
-
-          # Do not trust the build steps: always re-test the binaries security
-          # - template: step-cart-container-cve.yaml
-
           - template: step-setup-kubectl.yaml
 
-          - task: AzureCLI@2
-            displayName: Deploy instance
+          - template: step-publish-sbom.yaml
+            parameters:
+              dependencytrack_secret: ${{ parameters.dependencytrack_secret }}
+              env: ${{ parameters.env }}
+              instance: ${{ parameters.instance }}
+              package: cart-app-sbom
+
+          - template: step-publish-sbom.yaml
+            parameters:
+              dependencytrack_secret: ${{ parameters.dependencytrack_secret }}
+              env: ${{ parameters.env }}
+              instance: ${{ parameters.instance }}
+              package: cart-container-sbom
+
+          - bash: |
+              az config set extension.use_dynamic_install=yes_without_prompt
+
+              az artifacts universal download \
+                  --feed shopping-cart-devops-demo \
+                  --name cart-helm \
+                  --organization https://dev.azure.com/$(System.TeamProject) \
+                  --path $(Build.ArtifactStagingDirectory) \
+                  --version $(version)
+            displayName: Helm download
             env:
-              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken) # Connect to Azure Artifacts
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
+
+          - task: AzureCLI@2
+            displayName: Helm upgrade
+            env:
+              AZURE_DEVOPS_EXT_PAT: $(System.AccessToken)
             inputs:
               azureSubscription: azure-shopping-cart-devops-demo
               scriptType: bash
@@ -54,8 +68,12 @@ stages:
                 az aks get-credentials --resource-group shopping-cart-devops-demo --name shoppingcartdevopsdemo
                 kubelogin convert-kubeconfig -l azurecli
 
-                # Exec our build
-                make --directory ./src/cart env=${{ parameters.env }} instance=${{ parameters.instance }} deploy
+                # Exec our deploy
+                helm upgrade --install \
+                    --atomic \
+                    --namespace ${{ parameters.env }} \
+                    ${{ parameters.instance }} \
+                    $(Build.ArtifactStagingDirectory)/cart-$(version).tgz
 
           - template: step-send-notification.yaml
             parameters:
